@@ -1,3 +1,5 @@
+import kurentoClient from '../static/kurento-client';
+
 class Kurento {
   constructor({
     videoInput,
@@ -6,7 +8,7 @@ class Kurento {
     stopButton,
   }) {
     console.log('kurento constructor');
-    
+
     this.webRtcPeer = null;
     this.webRtcEndpoint = null;
     this.recorderEndpoint = null;
@@ -16,11 +18,11 @@ class Kurento {
     this.offer = '';
     this.answer = '';
 
-    this.videoInput = document.getElementById('videoInput');
-    this.videoOutput = document.getElementById('videoOutput');
+    this.videoInput = videoInput;
+    this.videoOutput = videoOutput;
 
-    this.startButton = document.getElementById("start");
-    this.stopButton = document.getElementById("stop");
+    this.startButton = startButton;
+    this.stopButton = stopButton;
 
     this.options = this.createOptions('relay');
   }
@@ -29,7 +31,7 @@ class Kurento {
     return {
       localVideo: this.videoInput,
       remoteVideo: this.videoOutput,
-      iceTransportPolicy: iceTransportPolicy,
+      iceTransportPolicy,
     };
   }
 
@@ -52,7 +54,7 @@ class Kurento {
     console.log('answer ready');
     this.webRtcPeer.processAnswer(this.answer);
     console.log('answer processed');
-    
+
     this.webRtcEndpoint.gatherCandidates(this.onError);
     await this.webRtcEndpoint.connect(this.webRtcEndpoint);
     this.STUN = await this.webRtcEndpoint.getStunServerAddress();
@@ -80,7 +82,7 @@ class Kurento {
         if (error) {
           return _this.onError(error);
         }
-  
+
         this.generateOffer((errorOffer, offer) => {
           if (errorOffer) {
             reject(errorOffer);
@@ -95,9 +97,9 @@ class Kurento {
     webRtcPeer.on('icecandidate', (event) => {
       const candidate = kurentoClient.getComplexType('IceCandidate')(event);
       this.localCandidates.push(candidate);
-      webRtcEp.addIceCandidate(candidate, onerror)
+      webRtcEp.addIceCandidate(candidate, onerror);
     });
-  
+
     webRtcEp.on('OnIceCandidate', (event) => {
       const candidate = event.candidate;
       this.remoteCandidates.push(candidate);
@@ -106,10 +108,10 @@ class Kurento {
   }
 
   setWebRtcEndpointListeners(webRtcEndpoint) {
-    const add = evName => {
+    const add = (evName) => {
       webRtcEndpoint.on(evName, (event) => {
         console.log(evName, event);
-      })
+      });
     };
 
     add('IceComponentStateChange');
@@ -147,3 +149,5 @@ class Kurento {
     return this.recorderEndpoint.record();
   }
 }
+
+export default Kurento;
