@@ -1,0 +1,14 @@
+# dependencies
+/node_modules
+
+# IDEs and editors
+/.idea
+/.vs
+
+# File storages
+upload/*
+
+logs/*
+
+
+npm-debug.log

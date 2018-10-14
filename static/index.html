@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+</head>
+<body>
+
+  <section id="config">
+    <div>
+      WsUri: 
+      <span id="wsUri"></span>
+
+    </div>
+  </section>
+
+  <section id="video">
+    <video id="videoInput" class="localVideo" autoplay></video>
+    <video id="videoOutput" class="localVideo" autoplay><video>
+  </section>
+
+  <section id="control">
+    <div>
+      <button id="start">Start</button>
+      <button id="stop">Stop</button>
+      <button id="dorecord">Record</button>
+    </div>
+    <div>
+      <input type="checkbox" id="autostart">
+      <label for="autostart">Autostart</label>
+    </div>
+    <div>
+      <input type="checkbox" id="record">
+      <label for="record">Record</label>
+    </div>
+
+  </section>
+  
+  <script src="js/kurento-client/js/kurento-client.js"></script>
+  <script src="js/kurento-utils/js/kurento-utils.js"></script>
+  <script src="./config.js"></script>
+  <script src="./kurento.js"></script>
+  <script src="./index.js"></script>
+</body>
+
+<style>
+  #wsUri {
+    font-weight: bold;
+  }
+  #video {
+    display: flex;
+  }
+  .localVideo {
+    width: 320px;
+    height: 240px;
+    border: 1px solid black;
+  }
+
+  button {
+    border: 1px solid grey;
+    border-radius: 3px;
+    margin: 3px;
+    background: white;
+    cursor: pointer;
+    padding: 3px 8px;
+    font-size: 1.05rem;
+  }
+  button.active {
+    background: red;
+  }
+  label {
+    cursor: pointer;
+  }
+</style>
+</html>
+
