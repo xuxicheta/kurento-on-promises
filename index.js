@@ -8,6 +8,8 @@ const debug = require('debug')('kurento-on-promises:server');
 const http = require('http');
 
 const app = require('./app');
+const { socket } = require('./modules/web-socket.module'); // eslint-disable-line
+const { config } = require('./modules/config.module'); // eslint-disable-line
 /**
  * Get port from environment and store in Express.
  */

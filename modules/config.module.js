@@ -1,5 +1,9 @@
+const { socket } = require('./web-socket.module');
+
 class Config {
   constructor() {
+    console.log('config module constructor');
+    
     // 'ws://antshvets.ddns.net:8888/kurento'
     this.localStoragePrefix = 'kurento_config';
     this.wsUri = this.retrieveValue('wsUri', 'ws://vpsanton.ddns.net:8888/kurento');
@@ -41,13 +45,23 @@ class Config {
    * @param {string} prop
    * @param {*} defaultValue
    */
-  retrieveValue(prop, defaultValue) {
+  retrieveValue(prop, defaultValue, ENV_NAME = '') {
     const attempt = this.getItem(prop);
     if (attempt === undefined) {
-      return defaultValue;
+      return process.env[ENV_NAME] || defaultValue;
     }
     return attempt;
   }
 }
 
-module.exports.Config = Config;
+const config = new Config();
+
+socket.addHandler('config/fetch', (data, _socket) => {
+  const str = JSON.stringify({
+    type: 'config/all',
+    data: Object.assign({}, config),
+  });
+  _socket.send(str);
+});
+
+module.exports.config = config;

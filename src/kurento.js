@@ -1,4 +1,5 @@
 import kurentoClient from '../static/kurento-client';
+import kurentoUtils from '../static/kurento-utils';
 
 class Kurento {
   constructor({

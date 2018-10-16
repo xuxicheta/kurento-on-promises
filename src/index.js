@@ -1,6 +1,8 @@
 //@ts-check
 
 import Kurento from './kurento';
+import * as config from './config';
+// import { socket } from './web-socket.service';
 
 const startButton = document.getElementById('start');
 const stopButton = document.getElementById('stop');
@@ -8,9 +10,9 @@ const autoStart = document.getElementById('autostart');
 const record = document.getElementById('record');
 const recordButton = document.getElementById('dorecord');
 //@ts-ignore
-autoStart.checked = config.isAutoStart;
+// autoStart.checked = config.isAutoStart;
 //@ts-ignore
-record.checked = config.isRecord;
+// record.checked = config.isRecord;
 
 
 const kurento = new Kurento({
@@ -36,10 +38,10 @@ const actions = {
     kurento.stop();
   },
   setAutostart() {
-    config.setItem('autostart', this.checked);
+    config.set('isAutostart', this.checked);
   },
   setRecord() {
-    config.setItem('record', this.checked);
+    config.set('isRecord', this.checked);
   },
   startRecord() {
     const dt = kurento.record();
@@ -55,8 +57,8 @@ recordButton.addEventListener('click', actions.startRecord);
 autoStart.addEventListener('change', actions.setAutostart);
 record.addEventListener('change', actions.setRecord);
 
-if (config.isAutoStart) {
-  actions.startVideo();
-} else {
-  actions.stopVideo();
-}
+// if (config.isAutoStart) {
+//   actions.startVideo();
+// } else {
+//   actions.stopVideo();
+// }
