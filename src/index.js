@@ -1,64 +1,101 @@
 //@ts-check
 
-import Kurento from './kurento';
-import * as config from './config';
-// import { socket } from './web-socket.service';
+import { config } from './config';
+import { KurentoNode } from './kurento-node.class';
 
 const startButton = document.getElementById('start');
 const stopButton = document.getElementById('stop');
 const autoStart = document.getElementById('autostart');
 const record = document.getElementById('record');
 const recordButton = document.getElementById('dorecord');
-//@ts-ignore
-// autoStart.checked = config.isAutoStart;
-//@ts-ignore
-// record.checked = config.isRecord;
+
+const videoInput = document.getElementById('videoInput');
+const videoOutput = document.getElementById('videoOutput');
 
 
-const kurento = new Kurento({
-  videoInput: document.getElementById('videoInput'),
-  videoOutput: document.getElementById('videoOutput'),
-  startButton,
-  stopButton,
-});
+// config.resolved.then(main);
+config.resolved.then(mainNode);
 
-const actions = {
-  startVideo() {
-    startButton.classList.add('active');
-    stopButton.classList.remove('active');
+// function main() { // eslint-disable-line
+  // const kurento = new Kurento({
+  //   videoInput,
+  //   videoOutput,
+  // });
 
-    kurento.createPipeline()
-      .then(() => kurento.createRecorder());
-  },
+  // const actions = {
+  //   startVideo() {
+  //     startButton.classList.add('active');
+  //     stopButton.classList.remove('active');
 
-  stopVideo() {
-    startButton.classList.remove('active');
-    stopButton.classList.add('active');
+  //     kurento.createPipeline()
+  //       .then(() => kurento.createRecorder());
+  //   },
 
-    kurento.stop();
-  },
-  setAutostart() {
-    config.set('isAutostart', this.checked);
-  },
-  setRecord() {
-    config.set('isRecord', this.checked);
-  },
-  startRecord() {
-    const dt = kurento.record();
-    console.log(dt);
+  //   stopVideo() {
+  //     startButton.classList.remove('active');
+  //     stopButton.classList.add('active');
 
-  },
-};
+  //     kurento.stop();
+  //   },
+  //   setAutostart() {
+  //     config.set('isAutostart', this.checked);
+  //   },
+  //   setRecord() {
+  //     config.set('isRecord', this.checked);
+  //   },
+  //   startRecord() {
+  //     const dt = kurento.record();
+  //     console.log(dt);
 
-startButton.addEventListener('click', actions.startVideo);
-stopButton.addEventListener('click', actions.stopVideo);
-recordButton.addEventListener('click', actions.startRecord);
+  //   },
+  // };
 
-autoStart.addEventListener('change', actions.setAutostart);
-record.addEventListener('change', actions.setRecord);
+  // startButton.addEventListener('click', actions.startVideo);
+  // stopButton.addEventListener('click', actions.stopVideo);
+  // recordButton.addEventListener('click', actions.startRecord);
 
-// if (config.isAutoStart) {
-//   actions.startVideo();
-// } else {
-//   actions.stopVideo();
+  // autoStart.addEventListener('change', actions.setAutostart);
+  // record.addEventListener('change', actions.setRecord);
 // }
+
+function mainNode() { // eslint-disable-line
+  const kurento = new KurentoNode({
+    videoInput,
+    videoOutput,
+  });
+
+  const actions = {
+    startVideo() {
+      startButton.classList.add('active');
+      stopButton.classList.remove('active');
+
+      kurento.createPipeline();
+        // .then(() => kurento.createRecorder());
+    },
+
+    stopVideo() {
+      startButton.classList.remove('active');
+      stopButton.classList.add('active');
+
+      // kurento.stop();
+    },
+    setAutostart() {
+      config.set('isAutostart', this.checked);
+    },
+    setRecord() {
+      config.set('isRecord', this.checked);
+    },
+    startRecord() {
+      // const dt = kurento.record();
+      // console.log(dt);
+
+    },
+  };
+
+  startButton.addEventListener('click', actions.startVideo);
+  stopButton.addEventListener('click', actions.stopVideo);
+  recordButton.addEventListener('click', actions.startRecord);
+
+  autoStart.addEventListener('change', actions.setAutostart);
+  record.addEventListener('change', actions.setRecord);
+}

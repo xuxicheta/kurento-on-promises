@@ -1,15 +1,17 @@
+import { v4 } from 'uuid';
 const URI = 'ws://localhost:3001';
 
 export class WS {
   constructor(uri) {
     /** @type {WebSocket} */
     this.socket = new WebSocket(uri);
+    this.sessionId = v4();
     this.handlers = {};
     this.waitings = [];
 
     this.socket.onmessage = ({ data }) => {
-      console.log(data);
-      
+      // console.log(data);
+
       try {
         const dataParsed = JSON.parse(data);
         /** @type {function[]} */
@@ -22,7 +24,13 @@ export class WS {
       }
     };
 
+
     this.socket.onopen = () => {
+      this.socket.send(JSON.stringify({
+        type: 'session/greetings',
+        sessionId: this.sessionId,
+      }));
+
       this.waitings.forEach(func => func());
     };
   }
@@ -36,6 +44,7 @@ export class WS {
     const msg = JSON.stringify({
       type,
       data,
+      sessionId: this.sessionId,
     });
     if (this.socket.readyState === 1) {
       this.socket.send(msg);
@@ -44,6 +53,15 @@ export class WS {
     }
   }
 
+  /**
+   * @callback wsHandlerCallback
+   * @param {*} data
+   */
+
+  /**
+   * @param {string} prop
+   * @param {wsHandlerCallback} handler
+   */
   addHandler(prop, handler) {
     if (Array.isArray(this.handlers[prop])) {
       this.handlers[prop].push(handler);
@@ -51,14 +69,12 @@ export class WS {
       this.handlers[prop] = [handler];
     }
   }
+
+  clearHandlers(prop) {
+    this.handlers[prop] = null;
+  }
 }
 
 export const socket = new WS(URI);
 
-// webSocket.onopen = () => {
-//   webSocket.send('something');
-// };
-
-// webSocket.onmessage = (data) => {
-//   console.log('WS: ', data);
-// };
+socket.addHandler('session/ping', () => socket.send('pong', ''));

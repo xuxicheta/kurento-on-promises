@@ -1,46 +1,60 @@
-const ws = require('ws');
+const WebSocket = require('ws');
+
 const DEFAULT_WS_PORT = 3001;
 const WS_PORT = process.env.WS_PORT || DEFAULT_WS_PORT;
 
 class WS {
   constructor() {
-    this.ws = new ws.Server({
+    this.wsServer = new WebSocket.Server({
       port: WS_PORT,
     });
     this.clients = [];
     this.handlers = {};
 
-    this.ws.on('connection', (socket) => {
+    this.wsServer.on('connection', (ws) => {
       const _this = this;
-      this.clients.push(socket);
-      socket.onclose = () => {
-        this.clients = this.clients.filter(client => client !== socket);
+      this.clients.push(ws);
+
+      ws.onclose = () => {
+        this.clients = this.clients.filter(client => client !== ws);
       };
 
-      socket.on('message', (message) => {
-        console.log('WS: received: %s', message);
+      ws.on('message', (message) => {
         try {
-          const data = JSON.parse(message);         
-          if (Array.isArray(_this.handlers[data.type])) {
-            _this.handlers[data.type].forEach((handler) => {
-              handler(data.data, socket);
-            });
+          const { type, data, sessionId } = JSON.parse(message);
+
+          if (!Array.isArray(_this.handlers[type])) {
+            const error = new Error('unrecognized incoming socket');
+            error.details = { type, data, sessionId };
+            throw error;
           }
+
+          _this.handlers[type].forEach((handler) => {
+            handler(data, ws, sessionId);
+          });
         } catch (error) {
           console.error(error);
         }
       });
-
-      // socket.send(JSON.stringify('something'));
     });
   }
 
+  /**
+   * @callback wsHandlerCallback
+   * @param {*} data
+   * @param {WebSocket} ws
+   * @param {string} sessionId
+   */
+
+  /**
+   * @param {string} prop
+   * @param {wsHandlerCallback} handler
+   */
   addHandler(prop, handler) {
-    if (Array.isArray(this.handlers[prop])) {
-      this.handlers[prop].push(handler.bind(this));
-    } else {
-      this.handlers[prop] = [handler];
+    if (!Array.isArray(this.handlers[prop])) {
+      this.handlers[prop] = [];
     }
+    this.handlers[prop].push(handler.bind(this));
   }
 
 }

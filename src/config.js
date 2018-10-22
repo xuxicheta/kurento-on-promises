@@ -1,22 +1,39 @@
 import { socket } from './web-socket.service';
+import { MyEvent } from './my-event.class';
 
-const config = {};
+export class Config extends MyEvent {
+  constructor() {
+    super();
+    this.data = {};
+    socket.addHandler('config/all', (data) => {
+      Object.assign(this.data, data);
+      this.emit(this.data);
+    });
+    socket.send('config/fetch');
 
-export const set = (prop, value) => {
-  socket.send('config/patch', { [prop]: value });
-  config[prop] = value;
-};
+    this.resolved = new Promise((resolve, reject) => {
+      this.once((value) => {
+        console.log('config received', config.getAll());
 
-export const getAll = () => {
-  return config;
-};
+        resolve(value);
+      });
+      setTimeout(() => reject(new Error('timeout')), 2000);
+    });
+  }
 
-export const get = (prop) => {
-  return config[prop];
-};
+  set(prop, value) {
+    socket.send('config/patch', { [prop]: value });
+    this.data[prop] = value;
+    this.emit(this.data);
+  }
 
-socket.addHandler('config/all', (data) => {
-  Object.assign(config, data);
-  console.log({ config });
-});
-socket.send('config/fetch');
+  getAll() {
+    return this.data;
+  }
+
+  get(prop) {
+    return this.data[prop];
+  }
+}
+
+export const config = new Config();

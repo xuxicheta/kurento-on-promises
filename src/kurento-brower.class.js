@@ -1,12 +1,14 @@
-import kurentoClient from '../static/kurento-client';
-import kurentoUtils from '../static/kurento-utils';
+import * as sdp from 'sdp-transform';
 
-class Kurento {
+import { config } from './config';
+
+const kurentoClient = window.kurentoClient;
+const kurentoUtils = window.kurentoUtils;
+
+export class KurentoBrowser {
   constructor({
     videoInput,
     videoOutput,
-    startButton,
-    stopButton,
   }) {
     console.log('kurento constructor');
 
@@ -22,9 +24,6 @@ class Kurento {
     this.videoInput = videoInput;
     this.videoOutput = videoOutput;
 
-    this.startButton = startButton;
-    this.stopButton = stopButton;
-
     this.options = this.createOptions('relay');
   }
 
@@ -39,22 +38,22 @@ class Kurento {
   async createPipeline() {
     /** @type {string} */
     this.offer = await this.generateOffer(this.options);
-    console.log('offer ready');
+    console.log('offer ready', { offer: sdp.parse(this.offer) });
 
-    this.client = await kurentoClient(config.wsUri);
-    console.log('client ready');
+    this.client = await kurentoClient(config.get('wsUri'));
+    console.log('client ready', this.client);
 
     this.pipeline = await this.client.create('MediaPipeline');
-    console.log('pipeline ready');
+    console.log('pipeline ready', this.pipeline);
 
     this.webRtcEndpoint = await this.pipeline.create('WebRtcEndpoint');
     this.setWebRtcEndpointListeners(this.webRtcEndpoint);
     this.setIceCandidateCallbacks(this.webRtcPeer, this.webRtcEndpoint, this.onError);
 
     this.answer = await this.webRtcEndpoint.processOffer(this.offer);
-    console.log('answer ready');
-    this.webRtcPeer.processAnswer(this.answer);
-    console.log('answer processed');
+    console.log('answer ready', { answer: this.answer });
+    const processed = this.webRtcPeer.processAnswer(this.answer);
+    console.log('answer processed', processed);
 
     this.webRtcEndpoint.gatherCandidates(this.onError);
     await this.webRtcEndpoint.connect(this.webRtcEndpoint);
@@ -94,7 +93,7 @@ class Kurento {
     });
   }
 
-  setIceCandidateCallbacks(webRtcPeer, webRtcEp, onerror, localCandidates, remoteCandidates) {
+  setIceCandidateCallbacks(webRtcPeer, webRtcEp, onerror/* , localCandidates, remoteCandidates */) {
     webRtcPeer.on('icecandidate', (event) => {
       const candidate = kurentoClient.getComplexType('IceCandidate')(event);
       this.localCandidates.push(candidate);
@@ -150,5 +149,3 @@ class Kurento {
     return this.recorderEndpoint.record();
   }
 }
-
-export default Kurento;
