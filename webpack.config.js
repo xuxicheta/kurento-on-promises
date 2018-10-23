@@ -11,6 +11,6 @@ module.exports = {
     filename: 'bundle.js',
   },
   plugins: [
-    new OpenBrowserPlugin({ url: `http://localhost:${process.env.PORT}` }),
+    new OpenBrowserPlugin({ url: `https://${process.env.HOSTNAME}:${process.env.PORT}` }),
   ],
 };

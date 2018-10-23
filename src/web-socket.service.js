@@ -1,5 +1,5 @@
 import { v4 } from 'uuid';
-const URI = 'ws://localhost:3001';
+const URI = `wss://${window.location.hostname}:${window.location.port}/ws`;
 
 export class WS {
   constructor(uri) {

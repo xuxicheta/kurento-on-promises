@@ -1,8 +1,9 @@
 const KurentoClient = require('kurento-client');
 const { MediaPipeline } = require('kurento-client-core'); // eslint-disable-line
 const { WebRtcEndpoint, RecorderEndpoint } = require('kurento-client-elements'); // eslint-disable-line
-const { config } = require('./config.module');
-const { socket } = require('./web-socket.module');
+const { ConfigModule } = require('./config.module');
+const { WebSocketModule } = require('./web-socket.module');
+
 
 class MediaModule {
   /**
@@ -11,6 +12,7 @@ class MediaModule {
    * @param {string} offer
    */
   constructor(ws, offer) {
+    this.wsUri = ConfigModule.instance.get('wsUri');
     this.client = null;
     /** @type {MediaPipeline} */
     this.pipeline = null;
@@ -25,12 +27,13 @@ class MediaModule {
     this.STUN = '';
     this.TURN = '';
     this.pairs = null;
+    MediaModule.assignWebSocket();
     this.init();
   }
 
   async init() {
     //@ts-ignore
-    this.client = await KurentoClient(config.get('wsUri'));
+    this.client = await KurentoClient(this.wsUri);
     console.log('client ready');
 
     this.pipeline = await this.client.create('MediaPipeline');
@@ -149,44 +152,55 @@ class MediaModule {
   onError(error) {
     console.error(error);
   }
+
+  static assignWebSocket() {
+    const socket = WebSocketModule.instance;
+    if (!MediaModule['media/offer']) {
+      MediaModule['media/offer'] = socket.addHandler('media/offer', (data, ws) => {
+        ws.media = new MediaModule(ws, data);
+      });
+    }
+
+    if (!MediaModule['media/localCandidate']) {
+      MediaModule['media/localCandidate'] = socket.addHandler('media/localCandidate', (data, ws) => {
+        /** @type {MediaModule} */
+        const media = ws.media;
+        if (media && media.addWebRtcEndpointCandidates) {
+          media.addWebRtcEndpointCandidates(data);
+        }
+      });
+    }
+
+    if (!MediaModule['media/stop']) {
+      MediaModule['media/stop'] = socket.addHandler('media/stop', (data, ws) => {
+        /** @type {MediaModule} */
+        const media = ws.media;
+        if (media && media.stop) {
+          media.stop();
+        }
+      });
+    }
+
+    if (!MediaModule['media/startRecord']) {
+      MediaModule['media/startRecord'] = socket.addHandler('media/startRecord', (data, ws) => {
+        /** @type {MediaModule} */
+        const media = ws.media;
+        if (media && media.createRecord) {
+          media.createRecord();
+        }
+      });
+    }
+
+    if (!MediaModule['media/stopRecord']) {
+      MediaModule['media/stopRecord'] = socket.addHandler('media/stopRecord', (data, ws) => {
+        /** @type {MediaModule} */
+        const media = ws.media;
+        if (media && media.stopRecord) {
+          media.stopRecord();
+        }
+      });
+    }
+  }
 }
 
-socket.addHandler('media/offer', (data, ws) => {
-  ws.media = new MediaModule(ws, data);
-});
-
-socket.addHandler('media/localCandidate', (data, ws) => {
-  /** @type {MediaModule} */
-  const media = ws.media;
-  if (media && media.addWebRtcEndpointCandidates) {
-    media.addWebRtcEndpointCandidates(data);
-  }
-});
-
-socket.addHandler('media/stop', (data, ws) => {
-  /** @type {MediaModule} */
-  const media = ws.media;
-  if (media && media.stop) {
-    media.stop();
-  }
-});
-
-socket.addHandler('media/startRecord', (data, ws) => {
-  /** @type {MediaModule} */
-  const media = ws.media;
-  if (media && media.createRecord) {
-    media.createRecord();
-  }
-});
-
-socket.addHandler('media/stopRecord', (data, ws) => {
-  /** @type {MediaModule} */
-  const media = ws.media;
-  if (media && media.stopRecord) {
-    media.stopRecord();
-  }
-});
-
-
-// module.exports.media = media;
-module.exports.Media = MediaModule;
+module.exports = { MediaModule };

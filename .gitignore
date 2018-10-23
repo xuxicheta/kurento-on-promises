@@ -12,6 +12,7 @@ logs/*
 
 dist/*
 files/*
+cert/*/*
 
 
 npm-debug.log

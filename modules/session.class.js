@@ -57,4 +57,4 @@ class Session {
   }
 }
 
-module.exports.Session = Session;
+module.exports = Session;

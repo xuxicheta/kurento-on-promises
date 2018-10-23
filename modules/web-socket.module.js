@@ -1,13 +1,20 @@
 const WebSocket = require('ws');
 
-const DEFAULT_WS_PORT = 3001;
-const WS_PORT = process.env.WS_PORT || DEFAULT_WS_PORT;
+// const DEFAULT_WS_PORT = 3001;
+// const WS_PORT = process.env.WS_PORT || DEFAULT_WS_PORT;
 
 class WebSocketModule {
-  constructor() {
+  constructor(server) {
+    if (WebSocketModule._instance) {
+      throw new Error('attempt to create singleton again');
+    }
+
     this.wsServer = new WebSocket.Server({
-      port: +WS_PORT,
+      server,
+      path: '/ws',
     });
+    console.log(this.wsServer);
+
     this.clients = [];
     this.handlers = {};
     /**
@@ -58,6 +65,7 @@ class WebSocketModule {
         }
       });
     });
+    WebSocketModule._instance = this;
   }
 
   /**
@@ -76,11 +84,17 @@ class WebSocketModule {
       this.handlers[prop] = [];
     }
     this.handlers[prop].push(handler.bind(this));
+    return handler;
+  }
+
+  /**
+   * @returns {WebSocketModule}
+   */
+  static get instance() {
+    return WebSocketModule._instance;
   }
 
 }
 
-const socket = new WebSocketModule();
 
-module.exports.WebSocketModule = WebSocketModule;
-module.exports.socket = socket;
+module.exports = { WebSocketModule };
