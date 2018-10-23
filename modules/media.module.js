@@ -1,6 +1,6 @@
 const KurentoClient = require('kurento-client');
-const { MediaPipeline } = require('kurento-client-core'); // eslint-disable-line
-const { WebRtcEndpoint, RecorderEndpoint } = require('kurento-client-elements'); // eslint-disable-line
+// const { MediaPipeline } = require('kurento-client-core'); // eslint-disable-line
+// const { WebRtcEndpoint, RecorderEndpoint } = require('kurento-client-elements'); // eslint-disable-line
 const { ConfigModule } = require('./config.module');
 const { WebSocketModule } = require('./web-socket.module');
 
