@@ -31,6 +31,9 @@ class MediaModule {
     this.init();
   }
 
+  /**
+   * @async
+   */
   async init() {
     //@ts-ignore
     this.client = await KurentoClient(this.wsUri);
@@ -63,11 +66,12 @@ class MediaModule {
     this.TURN = await this.webRtcEndpoint.getTurnUrl();
     //@ts-ignore
     this.pairs = await this.webRtcEndpoint.getICECandidatePairs();
-    console.log(this);
-
-
+    console.log('media chain ready, pairs: ', this.pairs);
   }
 
+  /**
+   * @param {WebRtcEndpoint} webRtcEndpoint
+   */
   setDebugListeners(webRtcEndpoint) {
     /** taken from source kurento-client */
     const eventsArray = [
@@ -114,6 +118,9 @@ class MediaModule {
     }
   }
 
+  /**
+   * @async
+   */
   async createRecord() {
     const filePath = ConfigModule.instance.get('filePath');
 
@@ -130,12 +137,18 @@ class MediaModule {
     }
   }
 
+  /**
+   * @async
+   */
   async stopRecord() {
     if (this.recordEndpoint) {
       this.recordEndpoint.release();
     }
   }
 
+  /**
+   * @async
+   */
   async stop() {
     console.log('stopped');
 

@@ -17,6 +17,7 @@ class SessionPoolModule {
    *
    * @param {string} sessionId
    * @param {WebSocketModule} ws
+   * @returns {Session}
    */
   addSession(sessionId, ws) {
     const session = new Session(sessionId, ws);
@@ -28,10 +29,17 @@ class SessionPoolModule {
     return session;
   }
 
+  /**
+   * @param {string} sessionId
+   * @returns {Session}
+   */
   findSession(sessionId) {
     return this.pool.find(session => session.sessionId === sessionId);
   }
 
+  /**
+   * @param {string} sessionId
+   */
   removeSession(sessionId) {
     this.pool = this.pool.filter(_session => _session.sessionId !== sessionId);
     console.log('removed ', sessionId);

@@ -19,7 +19,7 @@ export class Files {
   }
 
   refresh() {
-    socket.send('files/request', '');
+    socket.sendData('files/request', '');
   }
 }
 

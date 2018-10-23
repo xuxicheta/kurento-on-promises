@@ -40,7 +40,7 @@ export class WS {
    * @param {string} type
    * @param {*} data
    */
-  send(type, data = '') {
+  sendData(type, data = '') {
     const msg = JSON.stringify({
       type,
       data,
@@ -77,4 +77,4 @@ export class WS {
 
 export const socket = new WS(URI);
 
-socket.addHandler('session/ping', () => socket.send('pong', ''));
+socket.addHandler('session/ping', () => socket.sendData('pong', ''));

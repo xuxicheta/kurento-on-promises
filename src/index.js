@@ -71,16 +71,12 @@ function mainNode() { // eslint-disable-line
   const actions = {
     startVideo() {
       startButton.classList.add('active');
-      // stopButton.classList.remove('active');
-
       kurento.start();
     },
 
     stopVideo() {
       startButton.classList.remove('active');
       recordButton.classList.remove('active');
-      // stopButton.classList.add('active');
-
       kurento.stop();
     },
     setAutostart() {
@@ -98,18 +94,9 @@ function mainNode() { // eslint-disable-line
         ui.reset('recordButton');
       }
     },
-    // startRecord() {
-    //   kurento.startRecord();
-    // },
-    // stopRecord() {
-    //   kurento.stopRecord();
-    // }
   };
 
   startButton.addEventListener('click', actions.startVideo);
   stopButton.addEventListener('click', actions.stopVideo);
   recordButton.addEventListener('click', actions.toggleRecord);
-
-  // autoStart.addEventListener('change', actions.setAutostart);
-  // record.addEventListener('change', actions.setRecord);
 }

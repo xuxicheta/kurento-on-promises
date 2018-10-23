@@ -28,11 +28,11 @@ export class KurentoNode {
     this.offer = await this.generateOffer(this.options);
     this.listenSocket();
     this.listenCandidates();
-    socket.send('media/offer', this.offer);
+    socket.sendData('media/offer', this.offer);
   }
 
   async stop() {
-    socket.send('media/stop', '');
+    socket.sendData('media/stop', '');
   }
 
   createOptions(iceTransportPolicy) {
@@ -71,7 +71,7 @@ export class KurentoNode {
   listenCandidates() {
     this.webRtcPeer.on('icecandidate', (event) => {
       this.localCandidates.push(event);
-      socket.send('media/localCandidate', event);
+      socket.sendData('media/localCandidate', event);
     });
 
 
@@ -117,11 +117,11 @@ export class KurentoNode {
   }
 
   startRecord() {
-    socket.send('media/startRecord');
+    socket.sendData('media/startRecord');
   }
 
   stopRecord() {
-    socket.send('media/stopRecord');
+    socket.sendData('media/stopRecord');
     files.refresh();
   }
 

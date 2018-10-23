@@ -77,6 +77,7 @@ class WebSocketModule {
   /**
    * @param {string} prop
    * @param {wsHandlerCallback} handler
+   * @returns {wsHandlerCallback}
    */
   addHandler(prop, handler) {
     if (!Array.isArray(this.handlers[prop])) {

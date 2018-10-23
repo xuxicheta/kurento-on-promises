@@ -5,27 +5,20 @@ class ConfigModule {
     if (ConfigModule._instance) {
       throw new Error('attempt to create singleton again');
     }
-    this.data = {};
     this.globalDirName = '';
-    this.data.wsUri = this.retrieveValue('wsUri', 'wss://vpsanton.ddns.net:8433/kurento');
-    this.data.isAutoStart = this.retrieveValue('isAutoStart', true);
-    this.data.isAutoRecord = this.retrieveValue('isAutoRecord', false);
-    this.data.filePath = this.retrieveValue('filePath', '/files');
-    this.data.hostname = this.retrieveValue('hostname', 'vpsanton.ddns.net', 'NODE_HOSTNAME');
+    this._data = {
+      wsUri: process.env.KURENTO_WS_URI || 'wss://vpsanton.ddns.net:8433/kurento',
+      filePath: process.env.FILE_PATH || '/files',
+      hostname: process.env.NODE_HOSTNAME || 'vpsanton.ddns.net',
+    };
     ConfigModule._instance = this;
   }
 
   /**
-   *
    * @param {string} prop
-   * @param {*} defaultValue
    */
-  retrieveValue(prop, defaultValue, ENV_NAME = '') {
-    return process.env[ENV_NAME] || defaultValue;
-  }
-
   get(prop) {
-    return this.data[prop];
+    return this._data[prop];
   }
 
   static assignWebSocket() {
@@ -33,7 +26,7 @@ class ConfigModule {
     if (!ConfigModule['config/fetch']) {
       ConfigModule['config/fetch'] = socket.addHandler('config/fetch', (data, ws) => {
         const config = ConfigModule.instance;
-        ws.sendData('config/all', config.data);
+        ws.sendData('config/all', config._data);
       });
     }
   }
