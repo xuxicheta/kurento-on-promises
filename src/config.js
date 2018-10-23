@@ -1,10 +1,13 @@
 import { socket } from './web-socket.service';
 import { MyEvent } from './my-event.class';
+import { ui } from './ui';
 
 export class Config extends MyEvent {
   constructor() {
     super();
-    this.data = {};
+    this.data = {
+      recordDir: 'files',
+    };
     socket.addHandler('config/all', (data) => {
       Object.assign(this.data, data);
       this.emit(this.data);
@@ -37,3 +40,7 @@ export class Config extends MyEvent {
 }
 
 export const config = new Config();
+
+config.on(() => {
+  ui.set('wsUri', config.get('wsUri'));
+});

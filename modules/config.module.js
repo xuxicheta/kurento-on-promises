@@ -1,11 +1,12 @@
 const { socket } = require('./web-socket.module');
-
-class Config {
+class ConfigModule {
   constructor() {
     this.data = {};
+    this.globalDirName = '';
     this.data.wsUri = this.retrieveValue('wsUri', 'wss://vpsanton.ddns.net:8433/kurento');
     this.data.isAutoStart = this.retrieveValue('isAutoStart', true);
     this.data.isAutoRecord = this.retrieveValue('isAutoRecord', false);
+    this.data.filePath = this.retrieveValue('filePath', 'files');
   }
 
   /**
@@ -22,7 +23,7 @@ class Config {
   }
 }
 
-const config = new Config();
+const config = new ConfigModule();
 
 socket.addHandler('config/fetch', (data, ws) => {
   const str = JSON.stringify({

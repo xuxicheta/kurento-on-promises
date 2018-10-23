@@ -10,13 +10,7 @@
     <div>
       WsUri: 
       <span id="wsUri"></span>
-
     </div>
-  </section>
-
-  <section id="video">
-    <video id="videoInput" class="localVideo" autoplay></video>
-    <video id="videoOutput" class="localVideo" autoplay><video>
   </section>
 
   <section id="control">
@@ -25,16 +19,28 @@
       <button id="stop">Stop</button>
       <button id="dorecord">Record</button>
     </div>
-    <div>
+    <!-- <div>
       <input type="checkbox" id="autostart">
       <label for="autostart">Autostart</label>
     </div>
     <div>
       <input type="checkbox" id="record">
       <label for="record">Record</label>
-    </div>
+    </div> -->
 
   </section>
+
+  <section id="video">
+    <video id="videoInput" class="localVideo" autoplay></video>
+    <video id="videoOutput" class="localVideo" autoplay></video>
+    <video id="playerOutput" class="localVideo" controls></video>
+  </section>
+
+  <section>
+    <div id="filelist"></div>
+  </section>
+
+  
   
   <script src="./kurento-client.js"></script>
   <script src="./kurento-utils.js"></script>
@@ -60,14 +66,24 @@
     margin: 3px;
     background: white;
     cursor: pointer;
-    padding: 3px 8px;
-    font-size: 1.05rem;
+    padding: 10px 20px;
+    font-size: 1.3rem;
   }
   button.active {
     background: red;
   }
   label {
     cursor: pointer;
+  }
+
+  #filelist div {
+    margin: 4px;
+  }
+  #filelist div a {
+    cursor: pointer;
+  }
+  #filelist div a.active {
+    background: red;
   }
 </style>
 </html>

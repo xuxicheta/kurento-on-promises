@@ -3,17 +3,38 @@ const WebSocket = require('ws');
 const DEFAULT_WS_PORT = 3001;
 const WS_PORT = process.env.WS_PORT || DEFAULT_WS_PORT;
 
-class WS {
+class WebSocketModule {
   constructor() {
     this.wsServer = new WebSocket.Server({
-      port: WS_PORT,
+      port: +WS_PORT,
     });
     this.clients = [];
     this.handlers = {};
+    /**
+     * @param {string} type
+     * @param {*} data
+     */
+    this.sendData = (type, data) => undefined; // eslint-disable-line
 
     this.wsServer.on('connection', (ws) => {
       const _this = this;
       this.clients.push(ws);
+
+      //@ts-ignore
+      ws.sendData = (type, data) => {
+        const str = JSON.stringify({
+          type,
+          data,
+        });
+        if (ws.readyState === 1) {
+          ws.send(str);
+          return true;
+        }
+        //@ts-ignore
+        console.error('attemt to send data in closed WebSocket', 'sessionId', type, ws.session.sessionId);
+        return false;
+
+      };
 
       ws.onclose = () => {
         this.clients = this.clients.filter(client => client !== ws);
@@ -59,6 +80,7 @@ class WS {
 
 }
 
-const socket = new WS();
+const socket = new WebSocketModule();
 
+module.exports.WebSocketModule = WebSocketModule;
 module.exports.socket = socket;

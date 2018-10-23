@@ -1,7 +1,8 @@
-const { socket } = require('./web-socket.module');
+//@ts-check
+const { socket, WebSocketModule } = require('./web-socket.module'); // eslint-disable-line
 const { Session } = require('./session.class');
 
-class SessionPool {
+class SessionPoolModule {
   constructor() {
     /** @type {Session[]} */
     this.pool = [];
@@ -10,11 +11,13 @@ class SessionPool {
   /**
    *
    * @param {string} sessionId
-   * @param {WS} ws
+   * @param {WebSocketModule} ws
    */
   addSession(sessionId, ws) {
     const session = new Session(sessionId, ws);
-    session.onremove = () => this.removeSession(sessionId);
+    session.onremove = () => {
+      this.removeSession(sessionId);
+    };
 
     this.pool.push(session);
     return session;
@@ -26,22 +29,25 @@ class SessionPool {
 
   removeSession(sessionId) {
     // const session = this.findSession(sessionId);
-    this.pool = this.pool.filter(session => session.sessionId !== sessionId);
+    // session.close();
+    this.pool = this.pool.filter(_session => _session.sessionId !== sessionId);
     console.log('removed ', sessionId);
   }
 }
 
-const sessionPool = new SessionPool();
+const sessionPool = new SessionPoolModule();
 
 socket.addHandler('session/greetings', (data, ws, sessionId) => {
   /** @type {Session} */
+  //@ts-ignore
   ws.session = sessionPool.addSession(sessionId, ws);
 });
 
 socket.addHandler('session/pong', (data, ws) => {
+  //@ts-ignore
   ws.session.pong();
 });
 // console.log(socket);
 
-module.exports.SessionPool = SessionPool;
+module.exports.SessionPool = SessionPoolModule;
 module.exports.sessionPool = sessionPool;

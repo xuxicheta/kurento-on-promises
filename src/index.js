@@ -2,11 +2,13 @@
 
 import { config } from './config';
 import { KurentoNode } from './kurento-node.class';
+import { ui } from './ui'; // eslint-disable-line
+import './files';
 
 const startButton = document.getElementById('start');
 const stopButton = document.getElementById('stop');
-const autoStart = document.getElementById('autostart');
-const record = document.getElementById('record');
+// const autoStart = document.getElementById('autostart');
+// const record = document.getElementById('record');
 const recordButton = document.getElementById('dorecord');
 
 const videoInput = document.getElementById('videoInput');
@@ -63,21 +65,23 @@ function mainNode() { // eslint-disable-line
     videoInput,
     videoOutput,
   });
+  //@ts-ignore
+  window.kurento = kurento;
 
   const actions = {
     startVideo() {
       startButton.classList.add('active');
-      stopButton.classList.remove('active');
+      // stopButton.classList.remove('active');
 
-      kurento.createPipeline();
-        // .then(() => kurento.createRecorder());
+      kurento.start();
     },
 
     stopVideo() {
       startButton.classList.remove('active');
-      stopButton.classList.add('active');
+      recordButton.classList.remove('active');
+      // stopButton.classList.add('active');
 
-      // kurento.stop();
+      kurento.stop();
     },
     setAutostart() {
       config.set('isAutostart', this.checked);
@@ -85,17 +89,27 @@ function mainNode() { // eslint-disable-line
     setRecord() {
       config.set('isRecord', this.checked);
     },
-    startRecord() {
-      // const dt = kurento.record();
-      // console.log(dt);
-
+    toggleRecord() {
+      kurento.toggleRecord();
+      if (kurento.isRecording) {
+        recordButton.classList.add('active');
+      } else {
+        recordButton.classList.remove('active');
+        ui.reset('recordButton');
+      }
     },
+    // startRecord() {
+    //   kurento.startRecord();
+    // },
+    // stopRecord() {
+    //   kurento.stopRecord();
+    // }
   };
 
   startButton.addEventListener('click', actions.startVideo);
   stopButton.addEventListener('click', actions.stopVideo);
-  recordButton.addEventListener('click', actions.startRecord);
+  recordButton.addEventListener('click', actions.toggleRecord);
 
-  autoStart.addEventListener('change', actions.setAutostart);
-  record.addEventListener('change', actions.setRecord);
+  // autoStart.addEventListener('change', actions.setAutostart);
+  // record.addEventListener('change', actions.setRecord);
 }

@@ -1,3 +1,5 @@
+//@ts-check
+const { WebSocketModule } = require('./web-socket.module'); // eslint-disable-line
 
 const TIMEOUT = 20000;
 const EXPIRE_TIMEOUT = TIMEOUT * 4;
@@ -9,14 +11,16 @@ class Session {
   /**
    *
    * @param {string} sessionId
-   * @param {WS} ws
+   * @param {WebSocketModule} ws
    */
   constructor(sessionId, ws) {
     this.createdAt = new Date();
     this.sessionId = sessionId;
     this.ws = ws;
-    this.pingTimeout = 0;
-    this.expirationTimeout = 0;
+    /** @type {NodeJS.Timeout} */
+    this.pingTimeout = null;
+    /** @type {NodeJS.Timeout} */
+    this.expirationTimeout = null;
     this.expired = null;
     this.onremove = () => undefined;
     this.pong();
@@ -30,14 +34,14 @@ class Session {
   }
 
   ping() {
-    const str = JSON.stringify({
-      type: 'ping',
-      data: '',
-    });
-    this.ws.send(str);
-    if (!this.expired) {
-      this.pingTimeout = setTimeout(() => this.ping(), TIMEOUT);
+    const alive = this.ws.sendData('ping', '');
+    if (!alive) {
+
+      this.close();
     }
+    // if (!this.expired) {
+    //   this.pingTimeout = setTimeout(() => this.ping(), TIMEOUT);
+    // }
   }
 
   expire() {
@@ -47,6 +51,8 @@ class Session {
   }
 
   close() {
+    clearTimeout(this.pingTimeout);
+    clearTimeout(this.expirationTimeout);
     this.onremove();
   }
 }

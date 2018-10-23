@@ -1,4 +1,6 @@
 import { socket } from './web-socket.service';
+import { ui } from './ui';
+import { files } from './files';
 
 const kurentoUtils = window.kurentoUtils;
 
@@ -7,22 +9,30 @@ export class KurentoNode {
     videoInput,
     videoOutput,
   }) {
+    this.videoInput = videoInput;
+    this.videoOutput = videoOutput;
+  }
+
+  async start() {
     console.log('kurento constructor');
 
     this.webRtcPeer = null;
-    this.webRtcEndpoint = null;
-    this.recorderEndpoint = null;
-    this.pipeline = null;
     this.localCandidates = [];
     this.remoteCandidates = [];
     this.offer = '';
     this.answer = '';
-
-    this.videoInput = videoInput;
-    this.videoOutput = videoOutput;
+    this.isRecording = undefined;
 
     this.options = this.createOptions('relay');
-    this.createPipeline();
+
+    this.offer = await this.generateOffer(this.options);
+    this.listenSocket();
+    this.listenCandidates();
+    socket.send('media/offer', this.offer);
+  }
+
+  async stop() {
+    socket.send('media/stop', '');
   }
 
   createOptions(iceTransportPolicy) {
@@ -67,13 +77,6 @@ export class KurentoNode {
 
   }
 
-  async createPipeline() {
-    this.offer = await this.generateOffer(this.options);
-    this.listenSocket();
-    this.listenCandidates();
-    socket.send('media/offer', this.offer);
-  }
-
   listenSocket() {
     socket.clearHandlers('media/remoteCandidate');
     socket.addHandler('media/remoteCandidate', (data) => {
@@ -89,10 +92,50 @@ export class KurentoNode {
       this.webRtcPeer.processAnswer(this.answer);
       console.log('answer processed');
     });
+
+    socket.clearHandlers('media/event');
+    socket.addHandler('media/event', (event) => {
+      console.log({ [event.type]: event });
+    });
+
+    socket.clearHandlers('media/recordStarted');
+    socket.addHandler('media/recordStarted', (fileName) => {
+      ui.set('recordButton', `Recording ${fileName}`);
+    });
+
+    socket.addHandler('media/stopped', () => {
+      if (this.webRtcPeer) {
+        this.webRtcPeer.dispose();
+        this.webRtcPeer = null;
+      }
+      ui.reset('recordButton');
+    });
   }
 
   onError(error) {
     console.error(error);
+  }
+
+  startRecord() {
+    socket.send('media/startRecord');
+  }
+
+  stopRecord() {
+    socket.send('media/stopRecord');
+    files.refresh();
+  }
+
+  toggleRecord() {
+    if (!this.webRtcPeer) {
+      return false;
+    }
+
+    if (!this.isRecording) {
+      this.startRecord();
+    } else {
+      this.stopRecord();
+    }
+    this.isRecording = !this.isRecording;
   }
 
 
