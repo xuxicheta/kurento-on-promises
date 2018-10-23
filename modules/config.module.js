@@ -11,7 +11,7 @@ class ConfigModule {
     this.data.isAutoStart = this.retrieveValue('isAutoStart', true);
     this.data.isAutoRecord = this.retrieveValue('isAutoRecord', false);
     this.data.filePath = this.retrieveValue('filePath', '/files');
-    this.data.hostname = this.retrieveValue('hostname', 'vpsanton.ddns.net', 'HOSTNAME');
+    this.data.hostname = this.retrieveValue('hostname', 'vpsanton.ddns.net', 'NODE_HOSTNAME');
     ConfigModule._instance = this;
   }
 
