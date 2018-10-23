@@ -10,7 +10,7 @@ class ConfigModule {
     this.data.wsUri = this.retrieveValue('wsUri', 'wss://vpsanton.ddns.net:8433/kurento');
     this.data.isAutoStart = this.retrieveValue('isAutoStart', true);
     this.data.isAutoRecord = this.retrieveValue('isAutoRecord', false);
-    this.data.filePath = this.retrieveValue('filePath', 'files');
+    this.data.filePath = this.retrieveValue('filePath', '/files');
     this.data.hostname = this.retrieveValue('hostname', 'vpsanton.ddns.net', 'HOSTNAME');
     ConfigModule._instance = this;
   }

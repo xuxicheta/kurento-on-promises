@@ -115,10 +115,12 @@ class MediaModule {
   }
 
   async createRecord() {
+    const filePath = ConfigModule.instance.get('filePath');
+
     if (this.client) {
       const strTime = new Date().toLocaleString().replace(' ', '_');
       this.recordEndpoint = await this.pipeline.create('RecorderEndpoint', {
-        uri: `file:///tmp/${strTime}.mp4`,
+        uri: `file://${filePath}/${strTime}.mp4`,
       });
       await this.webRtcEndpoint.connect(this.recordEndpoint);
       console.log('record endpoint ready', 'file here', await this.recordEndpoint.getUri());
