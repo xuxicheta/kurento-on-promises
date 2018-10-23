@@ -13,7 +13,6 @@ class WebSocketModule {
       server,
       path: '/ws',
     });
-    console.log(this.wsServer);
 
     this.clients = [];
     this.handlers = {};
