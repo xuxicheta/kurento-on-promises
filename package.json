@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "prod": "npm install && npm start",
     "start": "node index.js",
     "dev": "webpack --progress --colors -w",
     "build": "webpack --progress --colors"
