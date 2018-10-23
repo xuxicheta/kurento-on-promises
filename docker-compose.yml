@@ -1,0 +1,48 @@
+version: '3.0'
+
+services:
+  media:
+    container_name: media
+    image: kurento/kurento-media-server:latest-xenial
+    restart: on-failure
+    ports:
+    - "8888:8888"
+    - "8433:8433"
+    - "49152-65535:49152-65535/udp"
+    volumes:
+    - './kurento:/etc/kurento'
+    - './files:/files'
+    - './tmp:/tmp'
+    - '/root/ssl:/root/ssl'
+    depends_on:
+    - coturn
+    network_mode: "host"
+
+  coturn:
+    container_name: coturn
+    image: kurento/coturn-auth
+    restart: on-failure
+    ports:
+      - 3478:3478
+    environment:
+      LISTENING_PORT: 3478
+      USER: ninefingers
+      REALM: kurento.org
+      PASSWORD: youhavetoberealistic
+    volumes:
+      - ./coturn/turnserver.conf:/etc/turnserver.conf
+    network_mode: "host"
+
+  web:
+    image: node:8.12
+    container_name: web
+    command: 'npm run prod'
+    working_dir: /usr/app
+    volumes:
+    - './node:/usr/app'
+    - './files:/usr/app/files'
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    environment:
+    - NODE_HOSTNAME=vpsanton.ddns.net
