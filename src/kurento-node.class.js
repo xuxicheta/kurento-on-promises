@@ -11,17 +11,22 @@ export class KurentoNode {
   }) {
     this.videoInput = videoInput;
     this.videoOutput = videoOutput;
+    this.lock = {
+      record: false,
+      play: false,
+    };
   }
 
   async start() {
     console.log('kurento constructor');
-
+    this.lock.play = true;
     this.webRtcPeer = null;
     this.localCandidates = [];
     this.remoteCandidates = [];
     this.offer = '';
     this.answer = '';
     this.isRecording = undefined;
+    this.isPlaying = true;
 
     this.options = this.createOptions('relay');
 
@@ -29,10 +34,13 @@ export class KurentoNode {
     this.listenSocket();
     this.listenCandidates();
     socket.sendData('media/offer', this.offer);
+    return true;
   }
 
   async stop() {
     socket.sendData('media/stop', '');
+    this.isPlaying = false;
+    return true;
   }
 
   createOptions(iceTransportPolicy) {
@@ -79,40 +87,41 @@ export class KurentoNode {
   }
 
   listenSocket() {
-    socket.clearHandlers('media/remoteCandidate');
-    socket.addHandler('media/remoteCandidate', (data) => {
+    socket.setHandler('media/remoteCandidate', (data) => {
       this.remoteCandidates.push(data);
       if (this.webRtcPeer) {
         this.webRtcPeer.addIceCandidate(data);
       }
     });
 
-    socket.clearHandlers('media/answer');
-    socket.addHandler('media/answer', (answer) => {
+    socket.setHandler('media/answer', (answer) => {
       this.answer = answer;
       this.webRtcPeer.processAnswer(this.answer);
       ui.logAppend('sdp', 'answer processed');
       console.log('answer processed');
+      this.lock.play = false;
     });
 
-    socket.clearHandlers('media/event');
-    socket.addHandler('media/event', (event) => {
+    socket.setHandler('media/event', (event) => {
       console.log({ [event.type]: event });
     });
 
-    socket.clearHandlers('media/recordStarted');
-    socket.addHandler('media/recordStarted', (fileName) => {
-      ui.set('recordButton', `Recording ${fileName}`);
+    socket.setHandler('media/recordStarted', (fileName) => {
+      ui.set('recordStatus', `Recording ${fileName}`);
+      ui.toggleRecBorder();
       ui.logAppend('record', `Recording ${fileName}`);
+      this.lock.record = false;
+      this.isRecording = true;
     });
 
-    socket.addHandler('media/stopped', () => {
+    socket.setHandler('media/stopped', () => {
       if (this.webRtcPeer) {
         this.webRtcPeer.dispose();
         this.webRtcPeer = null;
       }
-      ui.reset('recordButton');
+      ui.set('recordStatus', '');
       ui.logAppend('media', 'stopped');
+      this.lock.play = false;
     });
   }
 
@@ -126,7 +135,10 @@ export class KurentoNode {
 
   stopRecord() {
     socket.sendData('media/stopRecord');
+    ui.set('recordStatus', '');
+    ui.toggleRecBorder();
     files.refresh();
+    this.isRecording = false;
   }
 
   toggleRecord() {
@@ -139,7 +151,6 @@ export class KurentoNode {
     } else {
       this.stopRecord();
     }
-    this.isRecording = !this.isRecording;
   }
 
 

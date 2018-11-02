@@ -70,8 +70,20 @@ export class WS {
     }
   }
 
+  /**
+   * @param {string} prop
+   */
   clearHandlers(prop) {
     this.handlers[prop] = null;
+  }
+
+  /**
+   * @param {string} prop
+   * @param {wsHandlerCallback} handler
+   */
+  setHandler(prop, handler) {
+    this.clearHandlers(prop);
+    this.addHandler(prop, handler);
   }
 }
 

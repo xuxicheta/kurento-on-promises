@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Document</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -13,27 +14,25 @@
     </div>
   </section>
 
-  <section id="control">
-    <div>
-      <button id="start">Start</button>
-      <button id="stop">Stop</button>
-      <button id="dorecord">Record</button>
-    </div>
-    <!-- <div>
-      <input type="checkbox" id="autostart">
-      <label for="autostart">Autostart</label>
-    </div>
-    <div>
-      <input type="checkbox" id="record">
-      <label for="record">Record</label>
-    </div> -->
-
-  </section>
-
   <section id="video">
-    <video id="videoInput" class="localVideo" autoplay></video>
-    <video id="videoOutput" class="localVideo" autoplay></video>
-    <video id="playerOutput" class="localVideo" controls></video>
+    <div id="start_holder" class="video_holder">
+      <video id="videoInput" class="video" autoplay>123</video>
+      <div id="videoInput_icon" class="input_icon">
+        <img id="play_icon" src="assets/play.svg" alt="">
+        <img id="stop_icon" src="assets/stop.svg" alt="" style="display: none">
+      </div>
+    </div>
+    <div id="stop_holder" class="video_holder">
+      <video id="videoOutput" class="video" autoplay></video>
+      <span id="recordStatus"></span>
+      <div id="videoOutput_icon" class="input_icon">
+        <img id="rec_icon" src="assets/rec.svg" alt="" style="display: none">
+      </div>
+    </div>
+    <div id="player_holder" class="video_holder">
+      <video id="playerOutput" class="video" controls></video>
+      
+    </div>
   </section>
 
   <section>
@@ -51,44 +50,6 @@
   <script src="bundle.js"></script>
 </body>
 
-<style>
-  #wsUri {
-    font-weight: bold;
-  }
-  #video {
-    display: flex;
-  }
-  .localVideo {
-    width: 320px;
-    height: 240px;
-    border: 1px solid black;
-  }
 
-  button {
-    border: 1px solid grey;
-    border-radius: 3px;
-    margin: 3px;
-    background: white;
-    cursor: pointer;
-    padding: 10px 20px;
-    font-size: 1.3rem;
-  }
-  button.active {
-    background: red;
-  }
-  label {
-    cursor: pointer;
-  }
-
-  #filelist div {
-    margin: 4px;
-  }
-  #filelist div a {
-    cursor: pointer;
-  }
-  #filelist div a.active {
-    background: red;
-  }
-</style>
 </html>
 

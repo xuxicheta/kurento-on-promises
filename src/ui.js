@@ -6,8 +6,8 @@ export class UI {
     this.elements = {
       /** @type {HTMLSpanElement} */
       wsUri: document.querySelector('#wsUri'),
-      /** @type {HTMLButtonElement} */
-      recordButton: document.querySelector('#dorecord'),
+      /** @type {HTMLSpanElement} */
+      recordStatus: document.querySelector('#recordStatus'),
       /** @type {HTMLDivElement} */
       fileList: document.querySelector('#filelist'),
       /** @type {HTMLVideoElement} */
@@ -18,6 +18,14 @@ export class UI {
       playerOutput: document.querySelector('#playerOutput'),
       /** @type {HTMLDivElement} */
       log: document.querySelector('#log'),
+      /** @type {HTMLDivElement} */
+      videoInput_icon: document.querySelector('#videoInput_icon'),
+      /** @type {HTMLImageElement} */
+      play_icon: document.querySelector('#play_icon'),
+      /** @type {HTMLImageElement} */
+      stop_icon: document.querySelector('#stop_icon'),
+      /** @type {HTMLImageElement} */
+      rec_icon: document.querySelector('#rec_icon'),
     };
     Object.keys(this.elements).forEach((prop) => {
       this.defaults[prop] = this.elements[prop].innerHTML;
@@ -79,6 +87,28 @@ export class UI {
         }
       };
     });
+  }
+
+  toggleVideo() {
+    this.elements.play_icon.style.display = this.elements.play_icon.style.display
+      ? ''
+      : 'none';
+    this.elements.stop_icon.style.display = this.elements.stop_icon.style.display
+      ? ''
+      : 'none';
+  }
+
+  toggleRecButtonView() {
+    this.elements.rec_icon.style.display = this.elements.rec_icon.style.display
+      ? ''
+      : 'none';
+  }
+
+  toggleRecBorder() {
+    const boderStyle = '1px solid red';
+    this.elements.videoOutput.style.border = this.elements.videoOutput.style.border === boderStyle
+      ? ''
+      : boderStyle;
   }
 
 }
