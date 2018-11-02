@@ -105,7 +105,7 @@ export class UI {
   }
 
   toggleRecBorder() {
-    const boderStyle = '1px solid red';
+    const boderStyle = '2px solid red';
     this.elements.videoOutput.style.border = this.elements.videoOutput.style.border === boderStyle
       ? ''
       : boderStyle;

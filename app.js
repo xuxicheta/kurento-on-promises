@@ -5,11 +5,16 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 
-const { routes } = require('./routes');
+const { router } = require('./routes/index.route');
 
 const app = express();
 
 // view engine setup
+
+// app.use((req, res, next) => {
+//   console.log(req.url);
+//   next();
+// });
 
 app.use(morgan('dev'));
 app.use(express.json());
@@ -18,7 +23,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'static')));
 app.use(express.static(path.join(__dirname, 'files')));
 app.use(express.static(path.join(__dirname, 'dist')));
-app.use(routes);
+app.use(router);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
@@ -27,13 +32,6 @@ app.use((req, res, next) => {
 
 // error handler
 app.use((err, req, res, next) => {  // eslint-disable-line
-  // set locals, only providing error in development
-  // res.locals.message = err.message;
-  // res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // // render the error page
-  // res.status(err.status || 500);
-  // res.render('error');
   console.error('error route', req.url);
   res.status(404).json({});
 });

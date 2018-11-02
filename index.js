@@ -85,3 +85,7 @@ function onListening() {
   const protocol = hostname === 'localhost' ? 'http' : 'https';
   log(`SERVER Listening on ${protocol}://${hostname}:${config.get('port')}`);
 }
+
+process.on('beforeExit', () => {
+  socket.wsServer.clients.forEach(ws => ws.close());
+});

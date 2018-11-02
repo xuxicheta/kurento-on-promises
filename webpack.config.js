@@ -2,6 +2,9 @@ require('dotenv').config();
 const OpenBrowserPlugin = require('open-browser-webpack-plugin');
 const path = require('path');
 console.log(process.env.NODE_HOSTNAME);
+const protocol = process.env.NODE_HOSTNAME === 'localhost' || !process.env.NODE_HOSTNAME
+  ? 'http'
+  : 'https';
 
 module.exports = {
   mode: 'development',
@@ -12,6 +15,6 @@ module.exports = {
     filename: 'bundle.js',
   },
   plugins: [
-    new OpenBrowserPlugin({ url: `https://${process.env.NODE_HOSTNAME}:${process.env.PORT}` }),
+    new OpenBrowserPlugin({ url: `${protocol}://${process.env.NODE_HOSTNAME}:${process.env.PORT}` }),
   ],
 };
