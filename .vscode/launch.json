@@ -10,8 +10,9 @@
       "name": "Debug Backend",
       "program": "${workspaceFolder}/index.js",
       "env": {
-        "NODE_ENV": "dev",
-
+        "NODE_ENV": "development",
+        "LOGGER": "*",
+        "NODE_HOSTNAME": "localhost"
       },
       // "cwd": "${workspaceFolder}/itorum-backend"
     }

@@ -4,14 +4,13 @@
   "private": true,
   "scripts": {
     "prod": "npm install && npm install -D && npm run build && npm start",
-    "start": "node index.js",
+    "start": "LOGGER=* node index.js",
     "dev": "webpack --progress --colors -w",
     "build": "webpack --progress --colors"
   },
   "dependencies": {
     "babel": "^6.23.0",
     "cookie-parser": "~1.4.3",
-    "debug": "~2.6.9",
     "dotenv": "^6.1.0",
     "express": "~4.16.0",
     "http-errors": "~1.6.2",
