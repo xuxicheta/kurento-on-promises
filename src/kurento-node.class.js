@@ -61,6 +61,7 @@ export class KurentoNode {
           if (errorOffer) {
             reject(errorOffer);
           }
+          ui.logAppend('sdp', 'offer generated');
           resolve(offer);
         });
       });
@@ -90,6 +91,7 @@ export class KurentoNode {
     socket.addHandler('media/answer', (answer) => {
       this.answer = answer;
       this.webRtcPeer.processAnswer(this.answer);
+      ui.logAppend('sdp', 'answer processed');
       console.log('answer processed');
     });
 
@@ -101,6 +103,7 @@ export class KurentoNode {
     socket.clearHandlers('media/recordStarted');
     socket.addHandler('media/recordStarted', (fileName) => {
       ui.set('recordButton', `Recording ${fileName}`);
+      ui.logAppend('record', `Recording ${fileName}`);
     });
 
     socket.addHandler('media/stopped', () => {
@@ -109,6 +112,7 @@ export class KurentoNode {
         this.webRtcPeer = null;
       }
       ui.reset('recordButton');
+      ui.logAppend('media', 'stopped');
     });
   }
 

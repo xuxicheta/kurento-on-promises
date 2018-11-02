@@ -16,6 +16,8 @@ export class UI {
       videoOutput: document.querySelector('#videoOutput'),
       /** @type {HTMLVideoElement} */
       playerOutput: document.querySelector('#playerOutput'),
+      /** @type {HTMLDivElement} */
+      log: document.querySelector('#log'),
     };
     Object.keys(this.elements).forEach((prop) => {
       this.defaults[prop] = this.elements[prop].innerHTML;
@@ -45,6 +47,17 @@ export class UI {
     if (element instanceof HTMLElement) {
       element.innerHTML = this.values[prop];
     }
+  }
+
+  logAppend(type = '', message) {
+    const div = document.createElement('div');
+    const strong = document.createElement('strong');
+    const span = document.createElement('span');
+    strong.innerText = `${type} `;
+    span.innerText = message;
+    div.appendChild(strong);
+    div.appendChild(span);
+    this.elements.log.appendChild(div);
   }
 
   enliveFileList() {
