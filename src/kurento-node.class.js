@@ -109,7 +109,6 @@ export class KurentoNode {
     socket.setHandler('media/recordStarted', (fileName) => {
       ui.set('recordStatus', `Recording ${fileName}`);
       ui.toggleRecBorder();
-      ui.logAppend('record', `Recording ${fileName}`);
       this.lock.record = false;
       this.isRecording = true;
     });

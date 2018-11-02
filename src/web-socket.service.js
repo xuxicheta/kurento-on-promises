@@ -89,4 +89,4 @@ export class WS {
 
 export const socket = new WS(URI);
 
-socket.addHandler('session/ping', () => socket.sendData('pong', ''));
+socket.setHandler('session/ping', () => socket.sendData('pong', ''));

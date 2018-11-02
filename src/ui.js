@@ -1,3 +1,4 @@
+import { socket } from './web-socket.service';
 
 export class UI {
   constructor() {
@@ -30,6 +31,7 @@ export class UI {
     Object.keys(this.elements).forEach((prop) => {
       this.defaults[prop] = this.elements[prop].innerHTML;
     });
+    this.listenSocket();
   }
 
   set(prop, value) {
@@ -111,6 +113,13 @@ export class UI {
       : boderStyle;
   }
 
+  listenSocket() {
+    socket.setHandler('log/append', (data) => {
+      this.logAppend(data.type, data.message);
+    });
+  }
+
 }
+
 
 export const ui = new UI();
