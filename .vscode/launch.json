@@ -8,13 +8,10 @@
       "type": "node",
       "request": "launch",
       "name": "Debug Backend",
-      "program": "${workspaceFolder}/index.js",
+      "program": "${workspaceFolder}/server/index.js",
       "env": {
         "NODE_ENV": "development",
         "LOGGER": "*",
-        "NODE_HOSTNAME": "antshvets.ddns.net",
-        // "RECORDS_PATH": "files",
-        "FILE_PATH": "http://vpsanton.ddns.net:8080/"
       },
       // "cwd": "${workspaceFolder}/itorum-backend"
     }

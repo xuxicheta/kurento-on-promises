@@ -57,12 +57,11 @@ export class KurentoNode {
    * @returns {Promise<string>}
    */
   generateOffer(options) {
-    const _this = this;
     return new Promise((resolve, reject) => {
       /** @type {WebRtcPeerSendrecv} */
       this.webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options, function (error) {
         if (error) {
-          return _this.onError(error);
+          reject(error);
         }
 
         this.generateOffer((errorOffer, offer) => {
@@ -82,8 +81,6 @@ export class KurentoNode {
       this.localCandidates.push(event);
       socket.sendData('media/localCandidate', event);
     });
-
-
   }
 
   listenSocket() {
@@ -99,14 +96,20 @@ export class KurentoNode {
       this.webRtcPeer.processAnswer(this.answer);
       ui.logAppend('sdp', 'answer processed');
       console.log('answer processed');
+      socket.sendData('media/mirror');
       this.lock.play = false;
     });
 
     socket.setHandler('media/event', (event) => {
+      delete event.tags;
+      delete event.timestamp;
+      delete event.componentId;
+      delete event.streamId;
+      delete event.padName;
       console.log({ [event.type]: event });
     });
 
-    socket.setHandler('media/recordStarted', (fileName) => {
+    socket.setHandler('media/record-started', (fileName) => {
       ui.set('recordStatus', `Recording ${fileName}`);
       ui.toggleRecBorder();
       this.lock.record = false;
@@ -124,31 +127,22 @@ export class KurentoNode {
     });
   }
 
-  onError(error) {
-    console.error(error);
-  }
-
-  startRecord() {
-    socket.sendData('media/startRecord');
-  }
-
-  stopRecord() {
-    socket.sendData('media/stopRecord');
-    ui.set('recordStatus', '');
-    ui.toggleRecBorder();
-    files.refresh();
-    this.isRecording = false;
-  }
-
   toggleRecord() {
     if (!this.webRtcPeer) {
       return false;
     }
 
     if (!this.isRecording) {
-      this.startRecord();
+      // start record
+      socket.sendData('media/record-start');
+      socket.sendData('media/record-start-tofile');
     } else {
-      this.stopRecord();
+      // stop record
+      socket.sendData('media/record-stop');
+      ui.set('recordStatus', '');
+      ui.toggleRecBorder();
+      files.refresh();
+      this.isRecording = false;
     }
   }
 

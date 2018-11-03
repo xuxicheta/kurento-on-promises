@@ -115,7 +115,7 @@ export class UI {
 
   listenSocket() {
     socket.setHandler('log/append', (data) => {
-      this.logAppend(data.type, data.message);
+      this.logAppend(data.type || data.header, data.message);
     });
   }
 

@@ -10,10 +10,8 @@ services:
     - "8433:8433"
     - "49152-65535:49152-65535/udp"
     volumes:
-    - './kurento:/etc/kurento'
+    - './config/kurento:/etc/kurento'
     - './files:/files'
-    - './tmp:/tmp'
-    - '/root/ssl:/root/ssl'
     depends_on:
     - coturn
     network_mode: "host"
@@ -30,19 +28,19 @@ services:
       REALM: kurento.org
       PASSWORD: youhavetoberealistic
     volumes:
-      - ./coturn/turnserver.conf:/etc/turnserver.conf
+      - ./config/coturn/turnserver.conf:/etc/turnserver.conf
     network_mode: "host"
 
   web:
-    image: node:8.12
+    image: node:carbon
     container_name: web
     command: 'npm run prod'
     working_dir: /usr/app
     volumes:
-    - './node:/usr/app'
-    - './files:/usr/app/files'
+    - './:/usr/app'
+    - './files:/files'
     ports:
-      - "3000:3000"
-      - "3001:3001"
+    - "443:3000"
     environment:
-    - NODE_HOSTNAME=vpsanton.ddns.net
+      NODE_ENV: "development"
+    # - NODE_HOSTNAME=vpsanton.ddns.net

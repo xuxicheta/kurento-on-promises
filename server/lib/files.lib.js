@@ -10,7 +10,6 @@ const pReadDir = promisify(fs.readdir);
 class FilesModule {
   constructor() {
     this.filesDir = path.join(config.globalDirName, config.get('filesPath'));
-    this.recordPath = path.join(config.globalDirName, config.get('recordPath'));
   }
 
   /**
@@ -33,6 +32,23 @@ class FilesModule {
             ws.sendData('files/list', items);
           });
       });
+  }
+
+  readCertificates() {
+    try {
+      const certDir = path.resolve(config.globalDirName, 'cert', config.get('hostname'));
+      if (!fs.existsSync(certDir)) {
+        return null;
+      }
+      return {
+        key: fs.readFileSync(`${certDir}/privkey.pem`).toString(),
+        cert: fs.readFileSync(`${certDir}/fullchain.pem`).toString(),
+        ca: fs.readFileSync(`${certDir}/chain.pem`).toString(),
+      };
+    } catch (error) {
+      console.error('FILE', error);
+      return null;
+    }
   }
 }
 

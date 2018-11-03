@@ -1,6 +1,10 @@
+//@ts-check
+
 /** @type {string[]} */
 let arr = [];
+
 let all = false;
+
 class Logger {
   constructor() {
     if (process.env.LOGGER) {

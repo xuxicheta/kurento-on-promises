@@ -2,9 +2,6 @@
 const WebSocket = require('ws');
 const { DetailedError } = require('./error.lib');
 
-// const DEFAULT_WS_PORT = 3001;
-// const WS_PORT = process.env.WS_PORT || DEFAULT_WS_PORT;
-
 class WebSocketModule {
   constructor() {
     /** @type {WebSocket.Server} */
@@ -52,6 +49,7 @@ class WebSocketModule {
 
       ws.on('message', (message) => {
         try {
+          // console.log('WS', message);
           const { type, data, sessionId } = JSON.parse(message.toString());
 
           if (!Array.isArray(_this.handlers[type])) {
