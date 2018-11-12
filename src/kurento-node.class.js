@@ -73,7 +73,6 @@ export class KurentoNode {
         });
       });
     });
-
   }
 
   listenCandidates() {

@@ -50,5 +50,5 @@ export class Config extends MyEvent {
 export const config = new Config();
 
 config.on(() => {
-  ui.set('wsUri', config.get('wsUri'));
+  ui.set('wsUri', config.get('kurentoWsUri'));
 });

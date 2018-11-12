@@ -21,18 +21,25 @@ const app = require('./app');
  * Create HTTP server.
  */
 
-const server = config.get('protocol') === 'http'
-  ? http.createServer(app)
-  : https.createServer(files.readCertificates(), app);
+const server = http.createServer(app);
+const serverSSL = https.createServer(files.readCertificates(), app);
 
-server.listen(config.get('port'))
+serverSSL.listen(config.get('httpsPort'))
   .on('error', onError)
-  .on('listening', onListening);
-socket.create(server);
+  .on('listening', () => {
+      log(`SERVER listening on https://${config.get('nodeHostname')}:${config.get('httpsPort')}`);
+  });
+socket.create(serverSSL);
 config.assignWebSocket();
 sessionPool.assignWebSocket();
 files.assignWebSocket();
 MediaClass.assignWebSocket();
+
+server.listen(config.get('httpPort'))
+  .on('error', onError)
+  .on('listening', () => {
+    log(`SERVER listening on http://${config.get('nodeHostname')}:${config.get('httpPort')}`);
+});
 
 /**
  * Event listener for HTTP server "error" event.
@@ -60,14 +67,6 @@ function onError(error) {
     default:
       throw error;
   }
-}
-
-/**
- * Event listener for HTTP server "listening" event.
- */
-
-function onListening() {
-  log(`SERVER Listening on ${config.get('protocol')}://${config.get('hostname')}:${config.get('port')}`);
 }
 
 process.on('beforeExit', () => {

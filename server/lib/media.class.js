@@ -39,7 +39,7 @@ class MediaClass {
   async init() {
     //@ts-ignore
     if (!MediaClass.client) {
-      this.client = await KurentoClient(config.get('wsUri'));
+      this.client = await KurentoClient(config.get('kurentoWsUri'));
       MediaClass.client = this.client;
       console.log('MEDIA created client');
     } else {
@@ -173,7 +173,7 @@ class MediaClass {
     const strTime = new Date().toLocaleString().replace(' ', '_');
     const recordEndpoint = await this.pipeline.create('RecorderEndpoint', {
       uri: `${uri}/${prefix}${strTime}.mp4`,
-      mediaProfile: 'MP4',
+      // mediaProfile: 'MP4',
     });
 
     await webRtcEndpoint.connect(recordEndpoint);
@@ -196,10 +196,13 @@ class MediaClass {
 
   /**
    * @async
+   * @param {RecorderEndpoint} recordEndpoint
    */
   async stopRecord(recordEndpoint) {
-    if (recordEndpoint && recordEndpoint.getUri) {
+    if (recordEndpoint && recordEndpoint.release) {
+      this.sendLog('record', `stoping ${await recordEndpoint.getUri()}`);
       recordEndpoint.release();
+
     }
   }
 
@@ -215,6 +218,7 @@ class MediaClass {
     });
     webRtcEndpoint.connect(playerEndpoint);
     playerEndpoint.play();
+    this.sendLog('player', 'creating');
     return playerEndpoint;
   }
 
@@ -222,9 +226,16 @@ class MediaClass {
    * @param {PlayerEndpoint} playerEndpoint
    */
   async stopPlayer(playerEndpoint) {
-    playerEndpoint.stop();
-    playerEndpoint.release();
-    this.sendData('media/player-stopped');
+    if (playerEndpoint && playerEndpoint.stop) {
+      if (playerEndpoint.stop) {
+        playerEndpoint.stop();
+      }
+      if (playerEndpoint.release) {
+        playerEndpoint.release();
+      }
+      this.sendData('media/player-stopped');
+      this.sendLog('player', 'stoping');
+    }
   }
 
   /**
@@ -233,9 +244,9 @@ class MediaClass {
   async stop() {
     console.log('MEDIA stopped');
 
-    if (this.recorderEndpoint && this.recordEndpoint.release) {
-      this.recorderEndpoint.release();
-    }
+    await this.stopRecord();
+    await this.stopPlayer();
+
     if (this.webRtcEndpoint && this.webRtcEndpoint.release) {
       this.webRtcEndpoint.release();
     }
@@ -282,7 +293,7 @@ class MediaClass {
         media.mirror();
       })
       .setHandler('media/record-start', async (data, ws) => {
-        const recordUrl = `${config.get('recordProtocol')}://${config.get('recordIp')}:${config.get('recordPort')}/${config.get('recordEndpoint')}`;
+        const recordUrl = `http://${config.get('recordIp')}:${config.get('httpPort')}/${config.get('recordEndpoint')}`;
         /** @type {MediaClass} */
         const media = ws.media;
         if (media && media.createRecordEndpoint) {

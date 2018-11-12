@@ -36,7 +36,7 @@ class FilesModule {
 
   readCertificates() {
     try {
-      const certDir = path.resolve(config.globalDirName, 'cert', config.get('hostname'));
+      const certDir = path.resolve(config.globalDirName, 'cert', config.get('nodeHostname'));
       if (!fs.existsSync(certDir)) {
         return null;
       }

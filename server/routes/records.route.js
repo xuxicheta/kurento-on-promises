@@ -4,6 +4,6 @@ const recordsController = require('../controllers/record.controller');
 
 const recordsRouter = express.Router();
 
-recordsRouter.post('/:filename', recordsController.recordStream);
+recordsRouter.all('/:filename', recordsController.recordStream);
 
 module.exports = { recordsRouter };

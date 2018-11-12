@@ -11,17 +11,20 @@ class ConfigLib {
      * @private
      */
     this._data = {
-      wsUri: process.env.KURENTO_WS_URI,
       filesPath: process.env.FILES_PATH,
+      httpPort: process.env.HTTP_PORT,
+      httpsPort: process.env.HTTPS_PORT,
       kurentoFilesPath: process.env.KURENTO_FILES_PATH,
-      recordIp: process.env.RECORD_IP,
-      recordHostname: process.env.RECORD_HOSTNAME,
+      kurentoWsUri: process.env.KURENTO_WS_URI,
+      nodeHostname: process.env.NODE_HOSTNAME,
+      nodeIp: process.env.NODE_IP,
       recordEndpoint: process.env.RECORD_ENDPOINT,
-      recordPort: process.env.RECORD_PORT,
-      recordProtocol: process.env.RECORD_PROTOCOL,
-      hostname: process.env.NODE_HOSTNAME,
-      port: process.env.PORT,
-      protocol: process.env.NODE_PROTOCOL,
+      // recordHostname: process.env.RECORD_HOSTNAME,
+      // recordIp: process.env.RECORD_IP,
+      // recordPort: process.env.RECORD_PORT,
+      recordHostname: process.env.NODE_HOSTNAME,
+      recordIp: process.env.NODE_IP,
+      recordPort: process.env.HTTP_PORT,
     };
 
     if (!this._data.recordIp && this._data.recordHostname) {
