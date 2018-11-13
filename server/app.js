@@ -23,6 +23,9 @@ app.use(express.static(path.resolve(config.globalDirName, 'public', 'static')));
 app.use(express.static(path.resolve(config.globalDirName, 'public', 'dist')));
 app.use(express.static(path.resolve(config.globalDirName, 'files')));
 app.use(router);
+app.get('favicon.ico', (req, res) => {
+  res.send('');
+});
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {

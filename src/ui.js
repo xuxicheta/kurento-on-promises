@@ -11,10 +11,14 @@ export class UI {
       recordStatus: document.querySelector('#recordStatus'),
       /** @type {HTMLDivElement} */
       fileList: document.querySelector('#filelist'),
+      /** @type {HTMLDivElement} */
+      fileList2: document.querySelector('#filelist2'),
       /** @type {HTMLVideoElement} */
       videoInput: document.querySelector('#videoInput'),
       /** @type {HTMLVideoElement} */
       videoOutput: document.querySelector('#videoOutput'),
+      /** @type {HTMLVideoElement} */
+      playerEndpointOutput: document.querySelector('#playerEndpointOutput'),
       /** @type {HTMLVideoElement} */
       playerOutput: document.querySelector('#playerOutput'),
       /** @type {HTMLDivElement} */
@@ -32,6 +36,13 @@ export class UI {
       this.defaults[prop] = this.elements[prop].innerHTML;
     });
     this.listenSocket();
+  }
+
+  /**
+    * @param {HTMLElement} element
+   */
+  toggleDisplay(element) {
+    element.classList.toggle('hide');
   }
 
   set(prop, value) {
@@ -71,25 +82,52 @@ export class UI {
   }
 
   enliveFileList() {
-    const list = Array.from(this.elements.fileList.querySelectorAll('a'));
-    list.forEach((a) => {
-      a.onclick = () => {
-
-        list.forEach((a1) => {
-          a1.classList.remove('active');
-        });
-        a.isActive = !a.isActive;
-        if (a.isActive) {
-          a.classList.add('active');
-          this.elements.playerOutput.src = a.innerText;
-          this.elements.playerOutput.play();
-        } else {
-          a.classList.remove('active');
-          this.elements.playerOutput.pause();
-        }
-      };
-    });
+    Array
+      .from(this.elements.fileList.querySelectorAll('a'))
+      .forEach((el, i, arr) => {
+        el.onclick = () => {
+          arr.forEach((a1) => {
+            a1.classList.remove('active');
+          });
+          el.isActive = !el.isActive;
+          if (el.isActive) {
+            el.classList.add('active');
+            this.elements.playerOutput.src = el.innerText;
+            this.elements.playerOutput.play();
+          } else {
+            this.elements.playerOutput.pause();
+          }
+        };
+      });
   }
+
+  enlivePlayerList() {
+    Array
+      .from(this.elements.fileList2.querySelectorAll('a'))
+      .forEach((el, i, arr) => {
+        el.onclick = () => {
+          arr.forEach((a1) => {
+            a1.classList.remove('active');
+          });
+          el.isActive = !el.isActive;
+          if (el.isActive) {
+            el.classList.add('active');
+            this.initPlayer(el.innerText);
+          } else {
+            this.stopPlayer();
+          }
+        };
+      });
+  }
+
+  initPlayer(url) {
+    socket.sendData('files/check-url', url);
+  }
+
+  stopPlayer() {
+    socket.sendData('player/stop', '');
+  }
+
 
   toggleVideo() {
     this.elements.play_icon.style.display = this.elements.play_icon.style.display

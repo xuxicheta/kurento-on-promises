@@ -21,7 +21,7 @@ class SessionPoolModule {
     };
 
     this.pool.push(session);
-    console.log(`SESSION created ${sessionId}`);
+    console.log(`SESSION created "${sessionId}"`);
 
     return session;
   }
@@ -40,6 +40,10 @@ class SessionPoolModule {
   removeSession(sessionId) {
     this.pool = this.pool.filter(_session => _session.sessionId !== sessionId);
     console.log(`SESSION removed ${sessionId}`);
+  }
+
+  createPlayer() {
+
   }
 
   assignWebSocket() {

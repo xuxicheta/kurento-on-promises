@@ -319,6 +319,11 @@ class MediaClass {
             media.stopRecord(media.fileRecordEndpoint);
           }
         }
+      }) 
+      .setHandler('player/offer', (data, ws) => {
+        const player = new MediaClass(ws, data);
+        ws.player = player;
+        console.log({ player });
       });
   }
 }

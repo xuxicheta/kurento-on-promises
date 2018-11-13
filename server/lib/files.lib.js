@@ -6,6 +6,7 @@ const config = require('./config.lib');
 const socket = require('./web-socket.lib');
 
 const pReadDir = promisify(fs.readdir);
+const pExists = promisify(fs.exists);
 
 class FilesModule {
   constructor() {
@@ -30,6 +31,13 @@ class FilesModule {
         this.readDir()
           .then((items) => {
             ws.sendData('files/list', items);
+          });
+      })
+      .setHandler('files/check-url', (data, ws) => {
+        const fileName = path.join(this.filesDir, data);
+        pExists(fileName)
+          .then(() => {
+            ws.sendData('player/file-found', fileName);
           });
       });
   }

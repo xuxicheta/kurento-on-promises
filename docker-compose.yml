@@ -31,16 +31,15 @@ services:
       - ./config/coturn/turnserver.conf:/etc/turnserver.conf
     network_mode: "host"
 
-  web:
-    image: node:carbon
-    container_name: web
-    command: 'npm run prod'
-    working_dir: /usr/app
-    volumes:
-    - './:/usr/app'
-    - './files:/files'
-    ports:
-    - "443:3000"
-    environment:
-      NODE_ENV: "development"
-    # - NODE_HOSTNAME=vpsanton.ddns.net
+  # web:
+  #   image: node:carbon
+  #   container_name: web
+  #   command: 'npm run prod'
+  #   working_dir: /usr/app
+  #   volumes:
+  #   - './:/usr/app'
+  #   - './files:/files'
+  #   ports:
+  #   - "443:3000"
+  #   environment:
+  #     NODE_ENV: "development"

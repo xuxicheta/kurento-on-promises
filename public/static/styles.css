@@ -15,8 +15,6 @@ section {
 .video_holder {
   position: relative;
   width: 320px;
-  height: 270px;
-  margin-left: 1rem;
 }
 
 .input_icon {
@@ -65,14 +63,46 @@ label {
   cursor: pointer;
 }
 
-#filelist div {
-  margin: 4px;
+#filelist-section, #player-section {
+  display: flex;
+  position: relative;
 }
 
-#filelist div a {
+.filelist {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  width: 100%;
+  flex: auto;
+  max-height: 260px;
+  padding-top: 4px;
+}
+
+.filelist-title {
+  position: absolute;
+  top: -15px;
+  padding: 5px;
+  background: white;
+}
+
+.player_holder {
+  width: 330px;
+  flex: none;
+}
+
+.filelist div a {
+  padding: 4px;
+  display: inline-block;
+}
+
+.filelist div a {
   cursor: pointer;
 }
 
-#filelist div a.active {
+.filelist div a.active {
   background: red;
+}
+
+.hide {
+  display: none
 }

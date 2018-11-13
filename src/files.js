@@ -14,7 +14,9 @@ export class Files {
       this.list = data;
       this.html = this.list.map(file => `<div><a>${file}</a></div>`).join('\n');
       ui.set('fileList', this.html);
+      ui.set('fileList2', this.html);
       ui.enliveFileList();
+      ui.enlivePlayerList();
     });
   }
 

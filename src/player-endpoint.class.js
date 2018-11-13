@@ -4,48 +4,40 @@ import { files } from './files';
 
 const kurentoUtils = window.kurentoUtils;
 
-export class KurentoNode {
+export class PlayerEndpoint {
   constructor({
-    videoInput,
     videoOutput,
   }) {
-    this.videoInput = videoInput;
     this.videoOutput = videoOutput;
-    this.lock = {
-      record: false,
-      play: false,
-    };
     this.listenSocket();
   }
 
-  async start() {
+  async start(url) {
     console.log('kurento constructor');
-    this.lock.play = true;
+    this.url = url;
     this.webRtcPeer = null;
     this.localCandidates = [];
     this.remoteCandidates = [];
     this.offer = '';
     this.answer = '';
-    this.isRecording = undefined;
     this.isPlaying = true;
 
     this.options = this.createOptions('relay');
 
     this.offer = await this.generateOffer(this.options);
     this.listenCandidates();
-    socket.sendData('media/offer', this.offer);
+    socket.sendData('player/offer', this.offer);
     return true;
   }
 
   async stop() {
-    socket.sendData('media/stop', '');
+    socket.sendData('player/stop', '');
     this.isPlaying = false;
     return true;
   }
 
   createOptions(iceTransportPolicy) {
     return {
-      localVideo: this.videoInput,
       remoteVideo: this.videoOutput,
       iceTransportPolicy,
     };
@@ -68,7 +60,7 @@ export class KurentoNode {
           if (errorOffer) {
             reject(errorOffer);
           }
-          ui.logAppend('sdp', 'offer generated');
+          ui.logAppend('player', 'offer generated');
           resolve(offer);
         });
       });
@@ -78,52 +70,49 @@ export class KurentoNode {
   listenCandidates() {
     this.webRtcPeer.on('icecandidate', (event) => {
       this.localCandidates.push(event);
-      socket.sendData('media/localCandidate', event);
+      socket.sendData('player/localCandidate', event);
     });
   }
 
   listenSocket() {
-    socket.setHandler('media/remoteCandidate', (data) => {
+    socket
+      .setHandler('player/remoteCandidate', (data) => {
       this.remoteCandidates.push(data);
       if (this.webRtcPeer) {
         this.webRtcPeer.addIceCandidate(data);
       }
-    });
+    })
+      .setHandler('player/file-found', (data) => {
+        this.start(data);
+      })
 
-    socket.setHandler('media/answer', (answer) => {
-      this.answer = answer;
-      this.webRtcPeer.processAnswer(this.answer);
-      ui.logAppend('sdp', 'answer processed');
-      console.log('answer processed');
-      socket.sendData('media/mirror');
-      this.lock.play = false;
-    });
+      .setHandler('player/answer', (answer) => {
+        this.answer = answer;
+        this.webRtcPeer.processAnswer(this.answer);
+        ui.logAppend('player', 'answer processed');
+        console.log('player answer processed');
+        socket.sendData('media/mirror');
+        this.lock.play = false;
+      })
 
-    socket.setHandler('media/event', (event) => {
-      delete event.tags;
-      delete event.timestamp;
-      delete event.componentId;
-      delete event.streamId;
-      delete event.padName;
-      console.log({ [event.type]: event });
-    });
+      .setHandler('player/event', (event) => {
+        delete event.tags;
+        delete event.timestamp;
+        delete event.componentId;
+        delete event.streamId;
+        delete event.padName;
+        console.log({ [event.type]: event });
+      })
 
-    socket.setHandler('media/record-started', (fileName) => {
-      ui.set('recordStatus', `Recording ${fileName}`);
-      ui.toggleRecBorder();
-      this.lock.record = false;
-      this.isRecording = true;
-    });
-
-    socket.setHandler('media/stopped', () => {
-      if (this.webRtcPeer) {
-        this.webRtcPeer.dispose();
-        this.webRtcPeer = null;
-      }
-      ui.set('recordStatus', '');
-      ui.logAppend('media', 'stopped');
-      this.lock.play = false;
-    });
+      .setHandler('player/stopped', () => {
+        if (this.webRtcPeer) {
+          this.webRtcPeer.dispose();
+          this.webRtcPeer = null;
+        }
+        ui.set('recordStatus', '');
+        ui.logAppend('player', 'stopped');
+        this.lock.play = false;
+      });
   }
 
   toggleRecord() {

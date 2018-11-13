@@ -5,6 +5,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Front Debug",
+      "type": "chrome",
+      "request": "launch",
+      "url": "https://antshvets.ddns.net:3001/",
+      "webRoot": "${workspaceFolder}/src"
+  },
+    {
       "type": "node",
       "request": "launch",
       "name": "Debug Backend",

@@ -84,6 +84,7 @@ export class WS {
   setHandler(prop, handler) {
     this.clearHandlers(prop);
     this.addHandler(prop, handler);
+    return this;
   }
 }
 
