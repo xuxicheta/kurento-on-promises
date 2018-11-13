@@ -4,7 +4,7 @@ const { WebRtcEndpoint, RecorderEndpoint, PlayerEndpoint } = require('kurento-cl
 const config = require('./config.lib');
 const socket = require('./web-socket.lib');
 
-class MediaClass {
+class PlayerClass {
   /**
    *
    * @param {WebSocket} ws
@@ -38,12 +38,12 @@ class MediaClass {
    */
   async init() {
     //@ts-ignore
-    if (!MediaClass.client) {
+    if (!PlayerClass.client) {
       this.client = await KurentoClient(config.get('kurentoWsUri'));
-      MediaClass.client = this.client;
+      PlayerClass.client = this.client;
       console.log('MEDIA created client');
     } else {
-      this.client = MediaClass.client;
+      this.client = PlayerClass.client;
     }
 
     this.pipeline = await this.client.create('MediaPipeline');
@@ -79,7 +79,7 @@ class MediaClass {
     this.STUN = await webRtcEndpoint.getStunServerAddress();
     this.TURN = await webRtcEndpoint.getTurnUrl();
     process.nextTick(() => {
-      this.sendData('media/answer', this.answer);
+      this.sendData('answer', this.answer);
     });
 
     return webRtcEndpoint;
@@ -112,7 +112,7 @@ class MediaClass {
 
     eventsArray.forEach((eventName) => {
       webRtcEndpoint.on(eventName, (event) => {
-        this.sendData('media/event', event);
+        this.sendData('event', event);
       });
     });
 
@@ -125,7 +125,7 @@ class MediaClass {
   sendCandidatesToClient(webRtcEndpoint) {
     webRtcEndpoint.on('OnIceCandidate', (event) => {
       const candidate = KurentoClient.getComplexType('IceCandidate')(event.candidate);
-      this.sendData('media/remoteCandidate', candidate);
+      this.sendData('remoteCandidate', candidate);
     });
   }
 
@@ -134,7 +134,7 @@ class MediaClass {
    * @param {*} data
    */
   sendData(type, data = '') {
-    this.ws.sendData(type, data);
+    this.ws.sendData(`player/${type}`, data);
   }
 
   /**
@@ -142,7 +142,7 @@ class MediaClass {
    * @param {string} message
    */
   sendLog(header, message) {
-    this.sendData('log/append', {
+    this.ws.sendData('log/append', {
       header,
       message,
     });
@@ -157,52 +157,38 @@ class MediaClass {
     }
   }
 
-  async mirror() {
-    return this.webRtcEndpoint.connect(this.webRtcEndpoint);
-  }
-
 
   /**
-   * @async
-   * @param {WebRtcEndpoint} webRtcEndpoint
-   * @param {string} uri
-   * @param {string?} prefix
+   * @param {string} fileUri
+   * @returns {PlayerEndpoint}
    */
-  async createRecordEndpoint(webRtcEndpoint, uri, prefix = '') {
+  async createPlayerEndpoint(fileUri) {
 
-    const strTime = new Date().toLocaleString().replace(' ', '_');
-    const recordEndpoint = await this.pipeline.create('RecorderEndpoint', {
-      uri: `${uri}/${prefix}${strTime}.mp4`,
-      // mediaProfile: 'MP4',
+    /** @type {PlayerEndpoint} */
+    const playerEndpoint = await this.pipeline.create('PlayerEndpoint', {
+      uri: `file://${config.get('kurentoFilesPath')}/${fileUri}`,
     });
-
-    await webRtcEndpoint.connect(recordEndpoint);
-    recordEndpoint.record();
-    console.log(`MEDIA recording starting "${await recordEndpoint.getUri()}"`);
-
-    recordEndpoint.on('Recording', async () => {
-      console.log(`MEDIA recording started "${await recordEndpoint.getUri()}"`);
-      this.sendData('media/record-started', await recordEndpoint.getUri());
-      this.sendLog('record', `started "${await recordEndpoint.getUri()}"`);
-    });
-
-    recordEndpoint.on('Stopped', async () => {
-      console.log(`MEDIA record stopped "${await recordEndpoint.getUri()}"`);
-      this.sendLog('record', `stopped "${await recordEndpoint.getUri()}"`);
-    });
-
-    return recordEndpoint;
+    await this.webRtcEndpoint.connect(playerEndpoint);
+    await playerEndpoint.play();
+    this.sendLog('player', 'creating');
+    this.playerEndpoint = playerEndpoint;
+    console.log(`PLAYER created "${playerEndpoint.id}"`);
+    return playerEndpoint;
   }
 
   /**
-   * @async
-   * @param {RecorderEndpoint} recordEndpoint
+   * @param {PlayerEndpoint} playerEndpoint
    */
-  async stopRecord(recordEndpoint) {
-    if (recordEndpoint && recordEndpoint.release) {
-      this.sendLog('record', `stoping ${await recordEndpoint.getUri()}`);
-      recordEndpoint.release();
-
+  async stopPlayer(playerEndpoint) {
+    if (playerEndpoint && playerEndpoint.stop) {
+      if (playerEndpoint.stop) {
+        playerEndpoint.stop();
+      }
+      if (playerEndpoint.release) {
+        playerEndpoint.release();
+      }
+      this.sendData('player-stopped');
+      this.sendLog('player', 'stoping');
     }
   }
 
@@ -212,7 +198,6 @@ class MediaClass {
   async stop() {
     console.log('MEDIA stopped');
 
-    await this.stopRecord();
     await this.stopPlayer();
 
     if (this.webRtcEndpoint && this.webRtcEndpoint.release) {
@@ -221,7 +206,7 @@ class MediaClass {
     if (this.pipeline && this.pipeline.release) {
       this.pipeline.release();
     }
-    this.sendData('media/stopped');
+    this.sendData('stopped');
   }
 
   async gatherCandidates(webRtcEndpoint) {
@@ -238,62 +223,29 @@ class MediaClass {
 
   static assignWebSocket() {
     socket
-      .setHandler('media/offer', (data, ws) => {
-        ws.media = new MediaClass(ws, data);
-      })
-      .setHandler('media/localCandidate', (data, ws) => {
-        /** @type {MediaClass} */
-        const media = ws.media;
-        if (media && media.addWebRtcEndpointCandidates) {
-          media.addWebRtcEndpointCandidates(data);
-        }
-      })
-      .setHandler('media/stop', (data, ws) => {
-        /** @type {MediaClass} */
-        const media = ws.media;
-        if (media && media.stop) {
-          media.stop();
-        }
-      })
-      .setHandler('media/mirror', (data, ws) => {
-        /** @type {MediaClass} */
-        const media = ws.media;
-        media.mirror();
-      })
-      .setHandler('media/record-start', async (data, ws) => {
-        const recordUrl = `http://${config.get('recordIp')}:${config.get('httpPort')}/${config.get('recordEndpoint')}`;
-        /** @type {MediaClass} */
-        const media = ws.media;
-        if (media && media.createRecordEndpoint) {
-          media.recordEndpoint = await media.createRecordEndpoint(media.webRtcEndpoint, recordUrl, 'stream_');
-        }
-      })
-      .setHandler('media/record-start-tofile', async (data, ws) => {
-        const fileRecordUrl = `file://${config.get('kurentoFilesPath')}`;
-        /** @type {MediaClass} */
-        const media = ws.media;
-        if (media && media.createRecordEndpoint) {
-          media.fileRecordEndpoint = await media.createRecordEndpoint(media.webRtcEndpoint, fileRecordUrl, 'file_');
-        }
-      })
-      .setHandler('media/record-stop', (data, ws) => {
-        /** @type {MediaClass} */
-        const media = ws.media;
-        if (media && media.stopRecord) {
-          if (media.recordEndpoint) {
-            media.stopRecord(media.recordEndpoint);
-          }
-          if (media.fileRecordEndpoint) {
-            media.stopRecord(media.fileRecordEndpoint);
-          }
-        }
-      })
       .setHandler('player/offer', (data, ws) => {
-        const player = new MediaClass(ws, data);
-        ws.player = player;
-        console.log({ player });
+        ws.player = new PlayerClass(ws, data);
+      })
+      .setHandler('player/localCandidate', (data, ws) => {
+        /** @type {PlayerClass} */
+        const player = ws.player;
+        if (player && player.addWebRtcEndpointCandidates) {
+          player.addWebRtcEndpointCandidates(data);
+        }
+      })
+      .setHandler('player/play', (data, ws) => {
+        /** @type {PlayerClass} */
+        const player = ws.player;
+        player.createPlayerEndpoint(data);
+      })
+      .setHandler('player/stop', (data, ws) => {
+        /** @type {PlayerClass} */
+        const player = ws.player;
+        if (player && player.stop) {
+          player.stop();
+        }
       });
   }
 }
 
-module.exports = { MediaClass };
+module.exports = { PlayerClass };

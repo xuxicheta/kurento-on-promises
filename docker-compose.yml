@@ -12,6 +12,8 @@ services:
     volumes:
     - './config/kurento:/etc/kurento'
     - './files:/files'
+    - './files:/tmp'
+
     depends_on:
     - coturn
     network_mode: "host"

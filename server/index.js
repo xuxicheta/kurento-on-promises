@@ -6,6 +6,7 @@ const http = require('http');
 
 const log = require('./lib/log.class').getConsole('SERVER');
 const { MediaClass } = require('./lib/media.class');
+const { PlayerClass } = require('./lib/player.class');
 
 /****  init app  ****/
 const config = require('./lib/config.lib');
@@ -34,6 +35,7 @@ config.assignWebSocket();
 sessionPool.assignWebSocket();
 files.assignWebSocket();
 MediaClass.assignWebSocket();
+PlayerClass.assignWebSocket();
 
 server.listen(config.get('httpPort'))
   .on('error', onError)

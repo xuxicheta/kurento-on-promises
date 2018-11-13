@@ -1,10 +1,10 @@
 //@ts-check
 
 import { config } from './config';
-import { KurentoNode } from './kurento-node.class';
+import { KurentoNode } from './kurento-node';
 import { ui } from './ui'; // eslint-disable-line
 import './files';
-import { PlayerEndpoint } from './player-endpoint.class';
+import { PlayerEndpoint } from './player-endpoint';
 
 const videoInput = ui.elements.videoInput;
 const videoOutput = ui.elements.videoOutput;

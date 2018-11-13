@@ -1,4 +1,4 @@
-import { socket } from './web-socket.service';
+import { socket } from './web-socket';
 import { ui } from './ui';
 
 export class Files {

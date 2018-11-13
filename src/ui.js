@@ -1,4 +1,4 @@
-import { socket } from './web-socket.service';
+import { socket } from './web-socket';
 
 export class UI {
   constructor() {
@@ -19,6 +19,8 @@ export class UI {
       videoOutput: document.querySelector('#videoOutput'),
       /** @type {HTMLVideoElement} */
       playerEndpointOutput: document.querySelector('#playerEndpointOutput'),
+      /** @type {HTMLVideoElement} */
+      player3EndpointOutput: document.querySelector('#playerEndpointOutput'),
       /** @type {HTMLVideoElement} */
       playerOutput: document.querySelector('#playerOutput'),
       /** @type {HTMLDivElement} */

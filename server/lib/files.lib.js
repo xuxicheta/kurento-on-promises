@@ -37,7 +37,7 @@ class FilesModule {
         const fileName = path.join(this.filesDir, data);
         pExists(fileName)
           .then(() => {
-            ws.sendData('player/file-found', fileName);
+            ws.sendData('player/file-found', data);
           });
       });
   }

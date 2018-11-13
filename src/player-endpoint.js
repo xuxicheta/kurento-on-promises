@@ -1,6 +1,5 @@
-import { socket } from './web-socket.service';
+import { socket } from './web-socket';
 import { ui } from './ui';
-import { files } from './files';
 
 const kurentoUtils = window.kurentoUtils;
 
@@ -91,8 +90,7 @@ export class PlayerEndpoint {
         this.webRtcPeer.processAnswer(this.answer);
         ui.logAppend('player', 'answer processed');
         console.log('player answer processed');
-        socket.sendData('media/mirror');
-        this.lock.play = false;
+        socket.sendData('player/play', this.url);
       })
 
       .setHandler('player/event', (event) => {
@@ -114,25 +112,5 @@ export class PlayerEndpoint {
         this.lock.play = false;
       });
   }
-
-  toggleRecord() {
-    if (!this.webRtcPeer) {
-      return false;
-    }
-
-    if (!this.isRecording) {
-      // start record
-      socket.sendData('media/record-start');
-      socket.sendData('media/record-start-tofile');
-    } else {
-      // stop record
-      socket.sendData('media/record-stop');
-      ui.set('recordStatus', '');
-      ui.toggleRecBorder();
-      files.refresh();
-      this.isRecording = false;
-    }
-  }
-
 
 }

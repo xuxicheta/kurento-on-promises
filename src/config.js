@@ -1,5 +1,5 @@
-import { socket } from './web-socket.service';
-import { MyEvent } from './my-event.class';
+import { socket } from './web-socket';
+import { MyEvent } from './my-event';
 import { ui } from './ui';
 
 export class Config extends MyEvent {
