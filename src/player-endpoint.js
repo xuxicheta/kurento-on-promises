@@ -37,7 +37,8 @@ export class PlayerEndpoint {
 
   createOptions(iceTransportPolicy) {
     return {
-      remoteVideo: this.videoOutput,
+      localVideo: document.querySelector('#playerEndpointOutput'),
+      remoteVideo: document.querySelector('#player3EndpointOutput'),
       iceTransportPolicy,
     };
   }
@@ -76,11 +77,11 @@ export class PlayerEndpoint {
   listenSocket() {
     socket
       .setHandler('player/remoteCandidate', (data) => {
-      this.remoteCandidates.push(data);
-      if (this.webRtcPeer) {
-        this.webRtcPeer.addIceCandidate(data);
-      }
-    })
+        this.remoteCandidates.push(data);
+        if (this.webRtcPeer) {
+          this.webRtcPeer.addIceCandidate(data);
+        }
+      })
       .setHandler('player/file-found', (data) => {
         this.start(data);
       })
@@ -99,7 +100,7 @@ export class PlayerEndpoint {
         delete event.componentId;
         delete event.streamId;
         delete event.padName;
-        console.log({ [event.type]: event });
+        console.log({ type: event.type, data: event });
       })
 
       .setHandler('player/stopped', () => {

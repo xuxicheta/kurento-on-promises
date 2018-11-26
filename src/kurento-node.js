@@ -38,7 +38,12 @@ export class KurentoNode {
   }
 
   async stop() {
-    socket.sendData('media/stop', '');
+    if (socket.socket.OPEN) {
+      socket.sendData('media/stop', '');
+    } else {
+      this.webRtcPeer.dispose();
+      this.webRtcPeer = null;
+    }
     this.isPlaying = false;
     return true;
   }

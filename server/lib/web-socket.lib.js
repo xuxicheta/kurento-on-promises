@@ -1,5 +1,6 @@
 //@ts-check
 const WebSocket = require('ws');
+const Session = require('./session.class');  // eslint-disable-line
 const { DetailedError } = require('./error.lib');
 
 class WebSocketModule {
@@ -24,8 +25,26 @@ class WebSocketModule {
     });
 
     this.wsServer.on('connection', (ws) => {
-      const _this = this;
+      let isAlive = true;
+      const messageHandlers = this.handlers;
       this.clients.push(ws);
+
+      const pingInterval = setInterval(() => {
+        try {
+          if (!isAlive) {
+            ws.terminate();
+          }
+
+          ws.ping();
+        } catch (e) {
+          console.warn('WS cant ping');
+        }
+        isAlive = false;
+      }, 5000);
+
+      ws.on('pong', () => {
+        isAlive = true;
+      });
 
       //@ts-ignore
       ws.sendData = (type, data) => {
@@ -33,32 +52,38 @@ class WebSocketModule {
           type,
           data,
         });
-        if (ws.readyState === 1) {
+
+        try {
           ws.send(str);
           return true;
+        } catch (e) {
+          //@ts-ignore
+          console.error(`WS failed to send data, type "${type}"  session ${ws.session.sessionId}`);
+          return false;
         }
+      };
+
+      ws.on('close', () => {
+        clearInterval(pingInterval);
+        /** @type {Session} */
         //@ts-ignore
-        console.error(`WS failed to send data, type "${type}"  session ${ws.session.sessionId}`);
-        return false;
-
-      };
-
-      ws.onclose = () => {
-        this.clients = this.clients.filter(client => client !== ws);
-      };
+        const session = ws.session;
+        if (session) {
+          session.onCloseSocket();
+        }
+      });
 
       ws.on('message', (message) => {
         try {
-          // console.log('WS', message);
           const { type, data, sessionId } = JSON.parse(message.toString());
 
-          if (!Array.isArray(_this.handlers[type])) {
+          if (!Array.isArray(messageHandlers[type])) {
             const error = new DetailedError('unrecognized incoming socket');
             error.details = { type, data, sessionId };
             throw error;
           }
 
-          _this.handlers[type].forEach((handler) => {
+          messageHandlers[type].forEach((handler) => {
             handler(data, ws, sessionId);
           });
         } catch (error) {

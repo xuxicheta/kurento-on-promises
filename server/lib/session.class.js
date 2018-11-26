@@ -1,58 +1,42 @@
 //@ts-check
 const socket = require('./web-socket.lib'); // eslint-disable-line
 
-const TIMEOUT = 20000;
-const EXPIRE_TIMEOUT = TIMEOUT * 4;
-
-// console.log(media);
-
-
 class Session {
   /**
    *
    * @param {string} sessionId
-   * @param {socket} ws
+   * @param {WebSocket} ws
    */
   constructor(sessionId, ws) {
     this.createdAt = new Date();
     this.sessionId = sessionId;
     this.ws = ws;
-    /** @type {NodeJS.Timeout} */
-    this.pingTimeout = null;
-    /** @type {NodeJS.Timeout} */
-    this.expirationTimeout = null;
-    this.expired = null;
+    //@ts-ignore
+    ws.session = this;
     this.onremove = () => undefined;
-    this.pong();
+    this.socketTimeout = null;
   }
 
-  pong() {
-    clearTimeout(this.pingTimeout);
-    clearTimeout(this.expirationTimeout);
-    this.pingTimeout = setTimeout(() => this.ping(), TIMEOUT);
-    this.expirationTimeout = setTimeout(() => this.expire(), EXPIRE_TIMEOUT);
-  }
-
-  ping() {
-    const alive = this.ws.sendData('ping', '');
-    if (!alive) {
-
+  onCloseSocket() {
+    console.log(`SESSION ! breaks socket "${this.sessionId}" `);
+    this.socketTimeout = setTimeout(() => {
       this.close();
-    }
-    // if (!this.expired) {
-    //   this.pingTimeout = setTimeout(() => this.ping(), TIMEOUT);
-    // }
+    }, 10000);
   }
 
-  expire() {
-    // this.expired = new Date();
-    // this.close();
-    // console.log('expired', this);
+  /**
+   * @param {WebSocket} ws
+   */
+  resume(ws) {
+    this.ws = ws;
+    //@ts-ignore
+    ws.session = this;
+    clearTimeout(this.socketTimeout);
+    console.log(`SESSION > resumed "${this.sessionId}"`);
   }
 
   close() {
-    clearTimeout(this.pingTimeout);
-    clearTimeout(this.expirationTimeout);
+    console.log(`SESSION <<< "${this.sessionId}" closed`);
     this.onremove();
   }
 }

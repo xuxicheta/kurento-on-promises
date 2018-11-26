@@ -3,35 +3,58 @@ const URI = `wss://${window.location.hostname}:${window.location.port}/ws`;
 
 export class WS {
   constructor(uri) {
+    this.uri = uri;
     /** @type {WebSocket} */
-    this.socket = new WebSocket(uri);
-    this.sessionId = v4();
+
+    if (localStorage.getItem('sessionId')) {
+      this.sessionId = localStorage.getItem('sessionId');
+    } else {
+      this.sessionId = v4();
+      localStorage.setItem('sessionId', this.sessionId);
+    }
     this.handlers = {};
     this.waitings = [];
+    this.socketInit();
+
+
+  }
+
+  socketInit() {
+    this.socket = new WebSocket(this.uri);
 
     this.socket.onmessage = ({ data }) => {
-      // console.log(data);
-
       try {
         const dataParsed = JSON.parse(data);
-        /** @type {function[]} */
-        const handlers = [].concat(this.handlers[dataParsed.type] || []);
-        handlers.forEach((func) => {
-          func(dataParsed.data);
-        });
+        const type = dataParsed.type;
+        if (Array.isArray(this.handlers[type])) {
+          this.handlers[type].forEach((func) => {
+            func(dataParsed.data);
+          });
+        }
       } catch (error) {
         console.error(error);
       }
     };
 
-
     this.socket.onopen = () => {
+      console.log(`socket ${this.uri} opened, session ${this.sessionId}`);
       this.socket.send(JSON.stringify({
         type: 'session/greetings',
         sessionId: this.sessionId,
       }));
 
       this.waitings.forEach(func => func());
+    };
+
+    this.socket.onclose = () => {
+      console.warn(`socket ${this.uri} closed, session ${this.sessionId}`);
+      setTimeout(() => {
+        this.socketInit();
+      }, 5000);
+    };
+
+    this.socket.onerror = () => {
+      console.error(`socket ${this.uri} error, session ${this.sessionId}`);
     };
   }
 
@@ -46,7 +69,7 @@ export class WS {
       data,
       sessionId: this.sessionId,
     });
-    if (this.socket.readyState === 1) {
+    if (this.socket && this.socket.readyState === 1) {
       this.socket.send(msg);
     } else {
       this.waitings.push(() => this.socket.send(msg));

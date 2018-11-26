@@ -1,4 +1,5 @@
 //@ts-check
+const { cyan } = require('chalk').default;
 const Session = require('./session.class');
 const socket = require('./web-socket.lib'); // eslint-disable-line
 
@@ -11,7 +12,7 @@ class SessionPoolModule {
   /**
    *
    * @param {string} sessionId
-   * @param {socket} ws
+   * @param {WebSocket} ws
    * @returns {Session}
    */
   addSession(sessionId, ws) {
@@ -21,8 +22,7 @@ class SessionPoolModule {
     };
 
     this.pool.push(session);
-    console.log(`SESSION created "${sessionId}"`);
-
+    console.log(`SESSION ${cyan('>>>')} created "${sessionId}"`);
     return session;
   }
 
@@ -39,23 +39,17 @@ class SessionPoolModule {
    */
   removeSession(sessionId) {
     this.pool = this.pool.filter(_session => _session.sessionId !== sessionId);
-    console.log(`SESSION removed ${sessionId}`);
-  }
-
-  createPlayer() {
-
   }
 
   assignWebSocket() {
     socket
       .setHandler('session/greetings', (data, ws, sessionId) => {
-        /** @type {Session} */
-        //@ts-ignore
-        ws.session = this.addSession(sessionId, ws);
-      })
-      .setHandler('session/pong', (data, ws) => {
-        //@ts-ignore
-        ws.session.pong();
+        const foundedSession = this.findSession(sessionId);
+        if (foundedSession) {
+          foundedSession.resume(ws);
+          return;
+        }
+        this.addSession(sessionId, ws);
       });
   }
 }

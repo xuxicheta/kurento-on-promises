@@ -1,4 +1,5 @@
 const KurentoClient = require('kurento-client');
+const { green } = require('chalk').default;
 const { MediaPipeline } = require('kurento-client-core'); // eslint-disable-line
 const { WebRtcEndpoint, RecorderEndpoint, PlayerEndpoint } = require('kurento-client-elements'); // eslint-disable-line
 const config = require('./config.lib');
@@ -94,7 +95,7 @@ class MediaClass {
       // webRtcEndpoint events
       'DataChannelClose',
       'DataChannelOpen',
-      'IceCandidateFound',
+      // 'IceCandidateFound',
       'IceComponentStateChange',
       'IceGatheringDone',
       'NewCandidatePairSelected',
@@ -112,6 +113,28 @@ class MediaClass {
 
     eventsArray.forEach((eventName) => {
       webRtcEndpoint.on(eventName, (event) => {
+        switch (event.type) {
+          case 'NewCandidatePairSelected':
+            webRtcEndpoint.getICECandidatePairs().then((pairs) => {
+              pairs.forEach((pair) => {
+                // console.log(pair);
+                console.log(`PAIR local ${pair.localCandidate}`);
+                console.log(`PAIR remote ${pair.remoteCandidate}`);
+              });
+            });
+            break;
+          // case 'MediaFlowInStateChange':
+          //   console.log(event);
+          //   break;
+          case 'MediaFlowOutStateChange':
+            if (event.mediaType === 'VIDEO') {
+              console.log('FLOWING Video Out');
+            }
+            break;
+          default:
+        }
+        // console.log(`EVENT ${event.type}`);
+        // console.log(event);
         this.sendData('media/event', event);
       });
     });
@@ -126,6 +149,7 @@ class MediaClass {
     webRtcEndpoint.on('OnIceCandidate', (event) => {
       const candidate = KurentoClient.getComplexType('IceCandidate')(event.candidate);
       this.sendData('media/remoteCandidate', candidate);
+      // console.log(`remote ${candidate.candidate}`);
     });
   }
 
@@ -213,7 +237,6 @@ class MediaClass {
     console.log('MEDIA stopped');
 
     await this.stopRecord();
-    await this.stopPlayer();
 
     if (this.webRtcEndpoint && this.webRtcEndpoint.release) {
       this.webRtcEndpoint.release();
@@ -247,6 +270,7 @@ class MediaClass {
         if (media && media.addWebRtcEndpointCandidates) {
           media.addWebRtcEndpointCandidates(data);
         }
+        console.log(`local ${green(data.candidate)}`);
       })
       .setHandler('media/stop', (data, ws) => {
         /** @type {MediaClass} */
