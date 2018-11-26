@@ -35,7 +35,9 @@ export class UI {
       rec_icon: document.querySelector('#rec_icon'),
     };
     Object.keys(this.elements).forEach((prop) => {
-      this.defaults[prop] = this.elements[prop].innerHTML;
+      if (this.defaults[prop]) {
+        this.defaults[prop] = this.elements[prop].innerHTML;
+      }
     });
     this.listenSocket();
   }

@@ -106,3 +106,27 @@ label {
 .hide {
   display: none
 }
+
+#status div {
+  padding: 5px;
+  border-radius: 8px;
+  border: 2px solid grey;
+  display: inline-block;
+  margin-right: 4px;
+}
+
+#status .key {
+  font-weight: bold;
+}
+
+#status .value {
+  padding-left: 5px;
+}
+
+#status .red {
+  border: 2px solid red
+}
+
+#status .green {
+  border: 2px solid green
+}

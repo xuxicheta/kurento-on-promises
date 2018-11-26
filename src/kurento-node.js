@@ -139,7 +139,6 @@ export class KurentoNode {
     if (!this.isRecording) {
       // start record
       socket.sendData('media/record-start');
-      socket.sendData('media/record-start-tofile');
     } else {
       // stop record
       socket.sendData('media/record-stop');

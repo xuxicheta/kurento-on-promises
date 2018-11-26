@@ -10,50 +10,62 @@ const videoInput = ui.elements.videoInput;
 const videoOutput = ui.elements.videoOutput;
 const playerEndpointOutput = ui.elements.playerEndpointOutput;
 
+class Main {
+  constructor() {
+    /** @type {KurentoNode} */
+    this.kurento = null;
+    /** @type {PlayerEndpoint} */
+    this.player = null;
+    config.resolved.then(() => {
+      this.makingKurento();
+      this.buttonsActions();
+    });
+  }
 
-config.resolved.then(() => {
-  const kurento = new KurentoNode({
-    videoInput,
-    videoOutput,
-  });
+  makingKurento() {
+    this.kurento = new KurentoNode({
+      videoInput,
+      videoOutput,
+    });
 
-  const kurentoPlayer = new PlayerEndpoint({
-    videoOutput: playerEndpointOutput,
-  });
+    this.player = new PlayerEndpoint({
+      videoOutput: playerEndpointOutput,
+    });
+  }
 
-  //@ts-ignore
-  window.kurento = kurento;
-  //@ts-ignore
-  window.kurentoPlayer = kurentoPlayer;
+  buttonsActions() {
+    ui.elements.videoInput_icon.onclick = () => {
+      if (this.kurento.lock.play) {
+        return;
+      }
+      if (!this.kurento.isPlaying) {
+        this.kurento.start()
+          .then(() => {
+            ui.toggleVideo();
+            ui.toggleRecButtonView();
+          })
+          .catch(() => ui.logAppend('kurento', 'start error'));
+      } else {
+        this.kurento.stop()
+          .then(() => {
+            ui.toggleVideo();
+            ui.toggleRecButtonView();
+          })
+          .catch(() => ui.logAppend('kurento', 'stop error'));
+      }
+    };
 
-  ui.elements.videoInput_icon.onclick = () => {
-    if (kurento.lock.play) {
-      return;
-    }
-    if (!kurento.isPlaying) {
-      kurento.start()
-        .then(() => {
-          ui.toggleVideo();
-          ui.toggleRecButtonView();
-        })
-        .catch(() => ui.logAppend('kurento', 'start error'));
-    } else {
-      kurento.stop()
-        .then(() => {
-          ui.toggleVideo();
-          ui.toggleRecButtonView();
-        })
-        .catch(() => ui.logAppend('kurento', 'stop error'));
-    }
-  };
+    ui.elements.rec_icon.onclick = () => {
+      if (this.kurento.lock.record) {
+        return;
+      }
+      if (!this.kurento.isPlaying) {
+        return;
+      }
+      this.kurento.toggleRecord();
+    };
+  }
+}
 
-  ui.elements.rec_icon.onclick = () => {
-    if (kurento.lock.record) {
-      return;
-    }
-    if (!kurento.isPlaying) {
-      return;
-    }
-    kurento.toggleRecord();
-  };
-});
+
+const main = new Main(); // eslint-disable-line

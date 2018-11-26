@@ -1,6 +1,6 @@
 import { socket } from './web-socket';
 import { MyEvent } from './my-event';
-import { ui } from './ui';
+import { status } from './status';
 
 export class Config extends MyEvent {
   constructor() {
@@ -50,5 +50,7 @@ export class Config extends MyEvent {
 export const config = new Config();
 
 config.on(() => {
-  ui.set('wsUri', config.get('kurentoWsUri'));
+  status.set('websocket', 'online');
+  status.setColor('websocket', 'green');
+  status.set('wsUri', config.get('kurentoWsUri'));
 });

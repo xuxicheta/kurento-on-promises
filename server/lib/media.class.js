@@ -1,17 +1,20 @@
+//@ts-check
 const KurentoClient = require('kurento-client');
 const { green } = require('chalk').default;
 const { MediaPipeline } = require('kurento-client-core'); // eslint-disable-line
 const { WebRtcEndpoint, RecorderEndpoint, PlayerEndpoint } = require('kurento-client-elements'); // eslint-disable-line
+const Session = require('./session.class'); // eslint-disable-line
+
 const config = require('./config.lib');
 const socket = require('./web-socket.lib');
 
 class MediaClass {
   /**
    *
-   * @param {WebSocket} ws
+   * @param {Session} session
    * @param {string} offer
    */
-  constructor(ws, offer) {
+  constructor(session, offer) {
     this.client = null;
     /** @type {MediaPipeline} */
     this.pipeline = null;
@@ -25,7 +28,7 @@ class MediaClass {
     this.playerEndpoint = null;
 
     this.candidatesQueue = [];
-    this.ws = ws;
+    this.session = session;
     this.offer = offer;
     this.answer = '';
     this.STUN = '';
@@ -40,19 +43,23 @@ class MediaClass {
   async init() {
     //@ts-ignore
     if (!MediaClass.client) {
+      //@ts-ignore
       this.client = await KurentoClient(config.get('kurentoWsUri'));
       MediaClass.client = this.client;
       console.log('MEDIA created client');
     } else {
+      console.log('MEDIA taken client');
       this.client = MediaClass.client;
     }
 
     this.pipeline = await this.client.create('MediaPipeline');
+    //@ts-ignore
     console.log(`MEDIA created pipeline "${this.pipeline.id}"`);
 
     this.webRtcEndpoint = await this.createWebRtcEndpoint(this.offer);
 
     /** @type {any[]} */
+    //@ts-ignore
     this.pairs = await this.webRtcEndpoint.getICECandidatePairs();
     this.pairs.forEach((pair) => {
       console.log(`MEDIA local candidate ${pair.localCandidate}`);
@@ -112,9 +119,13 @@ class MediaClass {
     ];
 
     eventsArray.forEach((eventName) => {
+      //@ts-ignore
+
       webRtcEndpoint.on(eventName, (event) => {
         switch (event.type) {
           case 'NewCandidatePairSelected':
+            //@ts-ignore
+
             webRtcEndpoint.getICECandidatePairs().then((pairs) => {
               pairs.forEach((pair) => {
                 // console.log(pair);
@@ -146,7 +157,11 @@ class MediaClass {
    * @param {WebRtcEndpoint} webRtcEndpoint
    */
   sendCandidatesToClient(webRtcEndpoint) {
+    //@ts-ignore
+
     webRtcEndpoint.on('OnIceCandidate', (event) => {
+      //@ts-ignore
+
       const candidate = KurentoClient.getComplexType('IceCandidate')(event.candidate);
       this.sendData('media/remoteCandidate', candidate);
       // console.log(`remote ${candidate.candidate}`);
@@ -158,7 +173,7 @@ class MediaClass {
    * @param {*} data
    */
   sendData(type, data = '') {
-    this.ws.sendData(type, data);
+    this.session.sendData(type, data);
   }
 
   /**
@@ -173,8 +188,12 @@ class MediaClass {
   }
 
   addWebRtcEndpointCandidates(data) {
+    //@ts-ignore
+
     const candidate = KurentoClient.getComplexType('IceCandidate')(data);
     if (this.webRtcEndpoint) {
+      //@ts-ignore
+
       this.webRtcEndpoint.addIceCandidate(candidate);
     } else {
       this.candidatesQueue.push(candidate);
@@ -182,6 +201,8 @@ class MediaClass {
   }
 
   async mirror() {
+    //@ts-ignore
+
     return this.webRtcEndpoint.connect(this.webRtcEndpoint);
   }
 
@@ -200,6 +221,7 @@ class MediaClass {
       // mediaProfile: 'MP4',
     });
 
+    //@ts-ignore
     await webRtcEndpoint.connect(recordEndpoint);
     recordEndpoint.record();
     console.log(`MEDIA recording starting "${await recordEndpoint.getUri()}"`);
@@ -223,8 +245,11 @@ class MediaClass {
    * @param {RecorderEndpoint} recordEndpoint
    */
   async stopRecord(recordEndpoint) {
+    //@ts-ignore
     if (recordEndpoint && recordEndpoint.release) {
+      //@ts-ignore
       this.sendLog('record', `stoping ${await recordEndpoint.getUri()}`);
+      //@ts-ignore
       recordEndpoint.release();
 
     }
@@ -236,12 +261,16 @@ class MediaClass {
   async stop() {
     console.log('MEDIA stopped');
 
-    await this.stopRecord();
-
+    await this.stopRecord(this.recordEndpoint);
+    //@ts-ignore
     if (this.webRtcEndpoint && this.webRtcEndpoint.release) {
+      //@ts-ignore
       this.webRtcEndpoint.release();
     }
+
+    //@ts-ignore
     if (this.pipeline && this.pipeline.release) {
+      //@ts-ignore
       this.pipeline.release();
     }
     this.sendData('media/stopped');
@@ -262,7 +291,9 @@ class MediaClass {
   static assignWebSocket() {
     socket
       .setHandler('media/offer', (data, ws) => {
-        ws.media = new MediaClass(ws, data);
+        //@ts-ignore
+        const session = ws.session;
+        ws.media = new MediaClass(session, data);
       })
       .setHandler('media/localCandidate', (data, ws) => {
         /** @type {MediaClass} */
@@ -319,5 +350,7 @@ class MediaClass {
       });
   }
 }
+
+MediaClass.client = null;
 
 module.exports = { MediaClass };

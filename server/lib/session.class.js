@@ -39,6 +39,26 @@ class Session {
     console.log(`SESSION <<< "${this.sessionId}" closed`);
     this.onremove();
   }
+
+  /**
+   * @param {string} type
+   * @param {*} data
+   */
+  sendData(type, data = '') {
+    const str = JSON.stringify({
+      type,
+      data,
+    });
+
+    try {
+      this.ws.send(str);
+      return true;
+    } catch (e) {
+      //@ts-ignore
+      console.error(`WS failed to send data, type "${type}"  session ${this.sessionId}`);
+      return false;
+    }
+  }
 }
 
 module.exports = Session;
