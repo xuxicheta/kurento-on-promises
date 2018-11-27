@@ -13,7 +13,6 @@ const config = require('./lib/config.lib');
 config.setGlobal(`${__dirname}/..`);
 
 const socket = require('./lib/web-socket.lib');
-const sessionPool = require('./lib/session-pool.lib');
 const files = require('./lib/files.lib');
 
 const app = require('./app');
@@ -31,11 +30,10 @@ serverSSL.listen(config.get('httpsPort'))
       log(`SERVER listening on https://${config.get('nodeHostname')}:${config.get('httpsPort')}`);
   });
 socket.create(serverSSL);
-config.assignWebSocket();
-sessionPool.assignWebSocket();
-files.assignWebSocket();
-MediaClass.assignWebSocket();
-PlayerClass.assignWebSocket();
+config.assignWebSocket(socket);
+files.assignWebSocket(socket);
+MediaClass.assignWebSocket(socket);
+PlayerClass.assignWebSocket(socket);
 
 server.listen(config.get('httpPort'))
   .on('error', onError)

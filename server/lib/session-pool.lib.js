@@ -1,7 +1,6 @@
 //@ts-check
 const { cyan } = require('chalk').default;
 const Session = require('./session.class');
-const socket = require('./web-socket.lib'); // eslint-disable-line
 
 class SessionPoolModule {
   constructor() {
@@ -41,16 +40,17 @@ class SessionPoolModule {
     this.pool = this.pool.filter(_session => _session.sessionId !== sessionId);
   }
 
-  assignWebSocket() {
-    socket
-      .setHandler('session/greetings', (data, ws, sessionId) => {
-        const foundedSession = this.findSession(sessionId);
-        if (foundedSession) {
-          foundedSession.resume(ws);
-          return;
-        }
-        this.addSession(sessionId, ws);
-      });
+/**
+ * @param {string} sessionId
+ * @param {WebSocket} ws
+ * @returns {Session}
+ */
+  onNewConnection(sessionId, ws) {
+    const foundedSession = this.findSession(sessionId);
+    if (foundedSession) {
+      return foundedSession.resume(ws);
+    }
+    return this.addSession(sessionId, ws);
   }
 }
 

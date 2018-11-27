@@ -3,20 +3,19 @@ const URI = `wss://${window.location.hostname}:${window.location.port}/ws`;
 
 export class WS {
   constructor(uri) {
-    this.uri = uri;
-    /** @type {WebSocket} */
-
     if (localStorage.getItem('sessionId')) {
       this.sessionId = localStorage.getItem('sessionId');
     } else {
       this.sessionId = v4();
       localStorage.setItem('sessionId', this.sessionId);
     }
+
+    this.uri = `${uri}?${this.sessionId}`;
+    /** @type {WebSocket} */
+
     this.handlers = {};
     this.waitings = [];
     this.socketInit();
-
-
   }
 
   socketInit() {
@@ -38,11 +37,6 @@ export class WS {
 
     this.socket.onopen = () => {
       console.log(`socket ${this.uri} opened, session ${this.sessionId}`);
-      this.socket.send(JSON.stringify({
-        type: 'session/greetings',
-        sessionId: this.sessionId,
-      }));
-
       this.waitings.forEach(func => func());
     };
 
@@ -50,12 +44,12 @@ export class WS {
       console.warn(`socket ${this.uri} closed, session ${this.sessionId}`);
       setTimeout(() => {
         this.socketInit();
-      }, 5000);
+      }, 10000);
     };
 
-    this.socket.onerror = () => {
-      console.error(`socket ${this.uri} error, session ${this.sessionId}`);
-    };
+    // this.socket.onerror = () => {
+    //   console.error(`socket ${this.uri} error, session ${this.sessionId}`);
+    // };
   }
 
 

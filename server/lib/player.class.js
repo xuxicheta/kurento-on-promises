@@ -2,7 +2,6 @@ const KurentoClient = require('kurento-client');
 const { MediaPipeline } = require('kurento-client-core'); // eslint-disable-line
 const { WebRtcEndpoint, RecorderEndpoint, PlayerEndpoint } = require('kurento-client-elements'); // eslint-disable-line
 const config = require('./config.lib');
-const socket = require('./web-socket.lib');
 
 class PlayerClass {
   /**
@@ -221,26 +220,26 @@ class PlayerClass {
     });
   }
 
-  static assignWebSocket() {
+  static assignWebSocket(socket) {
     socket
-      .setHandler('player/offer', (data, ws) => {
-        ws.player = new PlayerClass(ws, data);
+      .setHandler('player/offer', (session, data) => {
+        session.createPlayer(data);
       })
-      .setHandler('player/localCandidate', (data, ws) => {
+      .setHandler('player/localCandidate', (session, data) => {
+      /** @type {PlayerClass} */
+      const player = session.player;
+      if (player && player.addWebRtcEndpointCandidates) {
+        player.addWebRtcEndpointCandidates(data);
+      }
+    })
+      .setHandler('player/play', (session, data) => {
         /** @type {PlayerClass} */
-        const player = ws.player;
-        if (player && player.addWebRtcEndpointCandidates) {
-          player.addWebRtcEndpointCandidates(data);
-        }
-      })
-      .setHandler('player/play', (data, ws) => {
-        /** @type {PlayerClass} */
-        const player = ws.player;
+        const player = session.player;
         player.createPlayerEndpoint(data);
       })
-      .setHandler('player/stop', (data, ws) => {
+      .setHandler('player/stop', (session) => {
         /** @type {PlayerClass} */
-        const player = ws.player;
+        const player = session.player;
         if (player && player.stop) {
           player.stop();
         }

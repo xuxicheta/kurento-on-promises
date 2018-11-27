@@ -1,5 +1,5 @@
 //@ts-check
-const socket = require('./web-socket.lib'); // eslint-disable-line
+const { MediaClass } = require('./media.class');
 
 class Session {
   /**
@@ -11,10 +11,35 @@ class Session {
     this.createdAt = new Date();
     this.sessionId = sessionId;
     this.ws = ws;
-    //@ts-ignore
-    ws.session = this;
+    /** @type {MediaClass} */
+    this.media = null;
+    /** @type {MediaClass} */
+    this.player = null;
+
     this.onremove = () => undefined;
     this.socketTimeout = null;
+  }
+
+  /**
+   * @param {string} offer
+   */
+  createMedia(offer) {
+    this.media = new MediaClass(offer);
+    this.media.onSend((type, data) => {
+      this.sendData(type, data);
+    });
+    return this.media;
+  }
+
+  /**
+   * @param {string} offer
+   */
+  createPlayer(offer) {
+    this.player = new MediaClass(offer);
+    this.player.onSend((type, data) => {
+      this.sendData(type, data);
+    });
+    return this.player;
   }
 
   onCloseSocket() {
@@ -29,10 +54,9 @@ class Session {
    */
   resume(ws) {
     this.ws = ws;
-    //@ts-ignore
-    ws.session = this;
     clearTimeout(this.socketTimeout);
     console.log(`SESSION > resumed "${this.sessionId}"`);
+    return this;
   }
 
   close() {

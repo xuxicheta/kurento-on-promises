@@ -3,7 +3,6 @@ const path = require('path');
 const fs = require('fs');
 const { promisify } = require('util');
 const config = require('./config.lib');
-const socket = require('./web-socket.lib');
 
 const pReadDir = promisify(fs.readdir);
 const pExists = promisify(fs.exists);
@@ -25,19 +24,19 @@ class FilesModule {
     }
   }
 
-  assignWebSocket() {
+  assignWebSocket(socket) {
     socket
-      .setHandler('files/request', (data, ws) => {
+      .setHandler('files/request', (session) => {
         this.readDir()
           .then((items) => {
-            ws.sendData('files/list', items);
+            session.sendData('files/list', items);
           });
       })
-      .setHandler('files/check-url', (data, ws) => {
+      .setHandler('files/check-url', (session, data) => {
         const fileName = path.join(this.filesDir, data);
         pExists(fileName)
           .then(() => {
-            ws.sendData('player/file-found', data);
+            session.sendData('player/file-found', data);
           });
       });
   }

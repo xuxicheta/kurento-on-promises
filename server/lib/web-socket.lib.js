@@ -1,6 +1,6 @@
 //@ts-check
 const WebSocket = require('ws');
-const Session = require('./session.class');  // eslint-disable-line
+const sessionPool = require('./session-pool.lib');
 const { DetailedError } = require('./error.lib');
 
 class WebSocketModule {
@@ -24,7 +24,10 @@ class WebSocketModule {
       path: '/ws',
     });
 
-    this.wsServer.on('connection', (ws) => {
+    this.wsServer.on('connection', (ws, req) => {
+      const sessionId = req.url.slice(4);
+      //@ts-ignore
+      const session = sessionPool.onNewConnection(sessionId, ws);
       let isAlive = true;
       const messageHandlers = this.handlers;
       this.clients.push(ws);
@@ -46,28 +49,8 @@ class WebSocketModule {
         isAlive = true;
       });
 
-      //@ts-ignore
-      ws.sendData = (type, data) => {
-        const str = JSON.stringify({
-          type,
-          data,
-        });
-
-        try {
-          ws.send(str);
-          return true;
-        } catch (e) {
-          //@ts-ignore
-          console.error(`WS failed to send data, type "${type}"  session ${ws.session.sessionId}`);
-          return false;
-        }
-      };
-
       ws.on('close', () => {
         clearInterval(pingInterval);
-        /** @type {Session} */
-        //@ts-ignore
-        const session = ws.session;
         if (session) {
           session.onCloseSocket();
         }
@@ -75,7 +58,7 @@ class WebSocketModule {
 
       ws.on('message', (message) => {
         try {
-          const { type, data, sessionId } = JSON.parse(message.toString());
+          const { type, data } = JSON.parse(message.toString());
 
           if (!Array.isArray(messageHandlers[type])) {
             const error = new DetailedError('unrecognized incoming socket');
@@ -84,7 +67,7 @@ class WebSocketModule {
           }
 
           messageHandlers[type].forEach((handler) => {
-            handler(data, ws, sessionId);
+            handler(session, data);
           });
         } catch (error) {
           console.error(error);
@@ -95,9 +78,8 @@ class WebSocketModule {
 
   /**
    * @callback wsHandlerCallback
-   * @param {*} data
-   * @param {WebSocket} ws
-   * @param {string} sessionId
+   * @param {Session} session
+   * @param {*?} data
    */
 
   /**
@@ -106,13 +88,19 @@ class WebSocketModule {
    * @returns {WebSocketModule}
    */
   addHandler(prop, handler) {
-    if (!Array.isArray(this.handlers[prop])) {
-      this.handlers[prop] = [];
+    if (Array.isArray(this.handlers[prop])) {
+      this.handlers[prop].push(handler.bind(this));
+    } else {
+      this.handlers[prop] = [handler.bind(this)];
     }
-    this.handlers[prop].push(handler.bind(this));
     return this;
   }
 
+  /**
+   * @param {string} prop
+   * @param {wsHandlerCallback} handler
+   * @returns {WebSocketModule}
+   */
   setHandler(prop, handler) {
     this.handlers[prop] = [handler.bind(this)];
     return this;

@@ -1,8 +1,6 @@
 //@ts-check
 const dns = require('dns');
 const path = require('path');
-const socket = require('./web-socket.lib');
-
 
 class ConfigLib {
   constructor() {
@@ -54,9 +52,9 @@ class ConfigLib {
     this._data.filesFullPath = path.resolve(this.globalDirName, this._data.filesPath);
   }
 
-  assignWebSocket() {
-    socket.setHandler('config/fetch', (data, ws) => {
-      ws.sendData('config/all', this._data);
+  assignWebSocket(socket) {
+    socket.setHandler('config/fetch', (session) => {
+      session.sendData('config/all', this._data);
     });
   }
 

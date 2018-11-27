@@ -3,18 +3,14 @@ const KurentoClient = require('kurento-client');
 const { green } = require('chalk').default;
 const { MediaPipeline } = require('kurento-client-core'); // eslint-disable-line
 const { WebRtcEndpoint, RecorderEndpoint, PlayerEndpoint } = require('kurento-client-elements'); // eslint-disable-line
-const Session = require('./session.class'); // eslint-disable-line
 
 const config = require('./config.lib');
-const socket = require('./web-socket.lib');
 
 class MediaClass {
   /**
-   *
-   * @param {Session} session
    * @param {string} offer
    */
-  constructor(session, offer) {
+  constructor(offer) {
     this.client = null;
     /** @type {MediaPipeline} */
     this.pipeline = null;
@@ -27,8 +23,13 @@ class MediaClass {
     /** @type {PlayerEndpoint} */
     this.playerEndpoint = null;
 
+    /**
+     * @param {string} type
+     * @param {*} data
+     */
+    this.sendData = (type, data = '') => {}; // eslint-disable-line
+
     this.candidatesQueue = [];
-    this.session = session;
     this.offer = offer;
     this.answer = '';
     this.STUN = '';
@@ -168,12 +169,8 @@ class MediaClass {
     });
   }
 
-  /**
-   * @param {string} type
-   * @param {*} data
-   */
-  sendData(type, data = '') {
-    this.session.sendData(type, data);
+  onSend(cb) {
+    this.sendData = cb;
   }
 
   /**
@@ -288,52 +285,46 @@ class MediaClass {
     });
   }
 
-  static assignWebSocket() {
+  static assignWebSocket(socket) {
     socket
-      .setHandler('media/offer', (data, ws) => {
-        //@ts-ignore
-        const session = ws.session;
-        ws.media = new MediaClass(session, data);
+      .setHandler('media/offer', (session, data) => {
+        session.createMedia(data);
       })
-      .setHandler('media/localCandidate', (data, ws) => {
+      .setHandler('media/localCandidate', (session, data) => {
         /** @type {MediaClass} */
-        const media = ws.media;
+        const media = session.media;
         if (media && media.addWebRtcEndpointCandidates) {
           media.addWebRtcEndpointCandidates(data);
         }
         console.log(`local ${green(data.candidate)}`);
       })
-      .setHandler('media/stop', (data, ws) => {
-        /** @type {MediaClass} */
-        const media = ws.media;
-        if (media && media.stop) {
-          media.stop();
+      .setHandler('media/stop', (session) => {
+        if (session.media && session.media.stop) {
+          session.media.stop();
         }
       })
-      .setHandler('media/mirror', (data, ws) => {
-        /** @type {MediaClass} */
-        const media = ws.media;
-        media.mirror();
+      .setHandler('media/mirror', (session) => {
+        session.media.mirror();
       })
-      .setHandler('media/record-start', async (data, ws) => {
+      .setHandler('media/record-start', async (session) => {
         const recordUrl = `http://${config.get('recordIp')}:${config.get('httpPort')}/${config.get('recordEndpoint')}`;
         /** @type {MediaClass} */
-        const media = ws.media;
+        const media = session.media;
         if (media && media.createRecordEndpoint) {
           media.recordEndpoint = await media.createRecordEndpoint(media.webRtcEndpoint, recordUrl, 'stream_');
         }
       })
-      .setHandler('media/record-start-tofile', async (data, ws) => {
+      .setHandler('media/record-start-tofile', async (session) => {
         const fileRecordUrl = `file://${config.get('kurentoFilesPath')}`;
         /** @type {MediaClass} */
-        const media = ws.media;
+        const media = session.media;
         if (media && media.createRecordEndpoint) {
           media.fileRecordEndpoint = await media.createRecordEndpoint(media.webRtcEndpoint, fileRecordUrl, 'file_');
         }
       })
-      .setHandler('media/record-stop', (data, ws) => {
+      .setHandler('media/record-stop', (session) => {
         /** @type {MediaClass} */
-        const media = ws.media;
+        const media = session.media;
         if (media && media.stopRecord) {
           if (media.recordEndpoint) {
             media.stopRecord(media.recordEndpoint);
@@ -342,12 +333,8 @@ class MediaClass {
             media.stopRecord(media.fileRecordEndpoint);
           }
         }
-      })
-      .setHandler('player/offer', (data, ws) => {
-        const player = new MediaClass(ws, data);
-        ws.player = player;
-        console.log({ player });
       });
+
   }
 }
 
