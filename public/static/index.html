@@ -10,7 +10,8 @@
   <section id="status">
   </section>
 
-  <section id="video">
+  <div id="mirror-title" class="filelist-title"><span>mirror stream</span></div>
+  <section id="mirror-section"  class="flex-section">
     <div id="start_holder" class="video_holder">
       <video id="videoInput" class="video" autoplay>123</video>
       <div id="videoInput_icon" class="input_icon">
@@ -27,17 +28,16 @@
     </div>
   </section>
 
-
-  <section id="filelist-section" class="filelist-section">
-    <div id="filelist-title" class="filelist-title">direct play</div>
+  <div id="filelist-title" class="filelist-title"><span>direct player</span> </div>
+  <section id="filelist-section" class="flex-section hidden">
     <div id="filelist" class="filelist"></div>
     <div id="player_holder" class="video_holder player_holder">
       <video id="playerOutput" class="video" controls></video>
     </div>
   </section>
 
-  <section id="player-section"  class="filelist-section">
-    <div id="player-title" class="filelist-title">playerendpoint play</div>
+  <div id="player-title" class="filelist-title"><span>playerendpoint</span></div>
+  <section id="player-section"  class="flex-section hidden">
     <div id="filelist2"  class="filelist"></div>
     <div id="player2_holder" class="video_holder player_holder">
       <video id="playerEndpointOutput" class="video" controls autostart></video>

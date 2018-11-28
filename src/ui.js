@@ -33,6 +33,12 @@ export class UI {
       stop_icon: document.querySelector('#stop_icon'),
       /** @type {HTMLImageElement} */
       rec_icon: document.querySelector('#rec_icon'),
+      filelistTitle: document.querySelector('#filelist-title'),
+      filelistSection: document.querySelector('#filelist-section'),
+      playerTitle: document.querySelector('#player-title'),
+      playerSection: document.querySelector('#player-section'),
+      mirrorTitle: document.querySelector('#mirror-title'),
+      mirrorSection: document.querySelector('#mirror-section'),
     };
     Object.keys(this.elements).forEach((prop) => {
       if (this.defaults[prop]) {
@@ -40,7 +46,13 @@ export class UI {
       }
     });
     this.listenSocket();
+
+    this.elements.filelistTitle.onclick = () => this.elements.filelistSection.classList.toggle('hidden');
+    this.elements.playerTitle.onclick = () => this.elements.playerSection.classList.toggle('hidden');
+    this.elements.mirrorTitle.onclick = () => this.elements.mirrorSection.classList.toggle('hidden');
+
   }
+
 
   /**
     * @param {HTMLElement} element
