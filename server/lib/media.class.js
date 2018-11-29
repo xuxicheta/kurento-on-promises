@@ -27,7 +27,7 @@ class MediaClass {
      * @param {string} type
      * @param {*} data
      */
-    this.sendData = (type, data = '') => {}; // eslint-disable-line
+    this.sendData = (type, data = '') => { }; // eslint-disable-line
 
     this.candidatesQueue = [];
     this.offer = offer;
@@ -42,17 +42,8 @@ class MediaClass {
    * @async
    */
   async init() {
-    //@ts-ignore
-    if (!MediaClass.client) {
-      //@ts-ignore
-      this.client = await KurentoClient(config.get('kurentoWsUri'));
-      MediaClass.client = this.client;
-      console.log('MEDIA created client');
-    } else {
-      console.log('MEDIA taken client');
-      this.client = MediaClass.client;
-    }
 
+    this.client = await this.getClient();
     this.pipeline = await this.client.create('MediaPipeline');
     //@ts-ignore
     console.log(`MEDIA created pipeline "${this.pipeline.id}"`);
@@ -70,6 +61,33 @@ class MediaClass {
       this.sendLog('remote candidate', pair.remoteCandidate);
 
     });
+  }
+
+  /**
+   * @returns {Promise<KurentoClient>}
+   */
+  async getClient() {
+    const wsUri = config.get('kurentoWsUri');
+    if (!MediaClass.client) {
+      /** @type {string} */
+
+      /** @type {KurentoClient} */
+      //@ts-ignore
+      MediaClass.client = await KurentoClient(wsUri);
+
+      //@ts-ignore
+      MediaClass.client.once('disconnect', async () => {
+        console.log('MEDIA kurento disconnected, trying to connect');
+        await this.stop();
+        setTimeout(() => {
+          this.getClient();
+        }, 5000);
+      });
+      console.log('MEDIA created client');
+
+    }
+    console.log(MediaClass.client);
+    return MediaClass.client;
   }
 
   async createWebRtcEndpoint(offer) {
@@ -162,7 +180,6 @@ class MediaClass {
 
     webRtcEndpoint.on('OnIceCandidate', (event) => {
       //@ts-ignore
-
       const candidate = KurentoClient.getComplexType('IceCandidate')(event.candidate);
       this.sendData('media/remoteCandidate', candidate);
       // console.log(`remote ${candidate.candidate}`);
@@ -186,11 +203,9 @@ class MediaClass {
 
   addWebRtcEndpointCandidates(data) {
     //@ts-ignore
-
     const candidate = KurentoClient.getComplexType('IceCandidate')(data);
     if (this.webRtcEndpoint) {
       //@ts-ignore
-
       this.webRtcEndpoint.addIceCandidate(candidate);
     } else {
       this.candidatesQueue.push(candidate);
@@ -338,6 +353,7 @@ class MediaClass {
   }
 }
 
+/** @type {KurentoClient} */
 MediaClass.client = null;
 
 module.exports = { MediaClass };

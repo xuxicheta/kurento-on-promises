@@ -110,7 +110,7 @@ export class KurentoNode {
       delete event.componentId;
       delete event.streamId;
       delete event.padName;
-      console.log({ [event.type]: event });
+      console.log(event.type, event);
     });
 
     socket.setHandler('media/record-started', (fileName) => {

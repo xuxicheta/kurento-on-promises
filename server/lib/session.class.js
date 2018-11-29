@@ -43,7 +43,7 @@ class Session {
   }
 
   onCloseSocket() {
-    console.log(`SESSION ! breaks socket "${this.sessionId}" `);
+    console.log(`WS ! breaks "${this.sessionId}" `);
     this.socketTimeout = setTimeout(() => {
       this.close();
     }, 10000);

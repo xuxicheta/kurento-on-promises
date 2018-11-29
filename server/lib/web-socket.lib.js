@@ -26,6 +26,7 @@ class WebSocketModule {
 
     this.wsServer.on('connection', (ws, req) => {
       const sessionId = req.url.slice(4);
+      console.log(`WS connection with id "${sessionId}" from ip ${req.socket.remoteAddress}`);
       //@ts-ignore
       const session = sessionPool.onNewConnection(sessionId, ws);
       let isAlive = true;
