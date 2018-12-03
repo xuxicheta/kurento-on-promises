@@ -1,5 +1,5 @@
 import { socket } from './web-socket';
-import { ui } from './ui';
+import { ui } from './ui/ui';
 
 export class Files {
   constructor() {
@@ -11,12 +11,9 @@ export class Files {
 
   assingSocketListeners() {
     socket.addHandler('files/list', (data) => {
+      /** @type {string[]} */
       this.list = data;
-      this.html = this.list.map(file => `<div><a>${file}</a></div>`).join('\n');
-      ui.set('fileList', this.html);
-      ui.set('fileList2', this.html);
-      ui.enliveFileList();
-      ui.enlivePlayerList();
+      ui.directPlayer.setFiles(this.list);
     });
   }
 

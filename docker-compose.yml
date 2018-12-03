@@ -17,8 +17,8 @@ services:
     depends_on:
     - coturn
     network_mode: "host"
-    environment:
-      # GST_DEBUG: 7
+    # environment:
+    #   GST_DEBUG: 7
 
   coturn:
     container_name: coturn

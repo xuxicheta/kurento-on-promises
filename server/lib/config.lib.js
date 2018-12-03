@@ -33,6 +33,7 @@ class ConfigLib {
         this.set('recordIp', addrs[0]);
       });
     }
+    console.log(this._data);
 
   }
 

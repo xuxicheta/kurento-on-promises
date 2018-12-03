@@ -67,27 +67,31 @@ class MediaClass {
    * @returns {Promise<KurentoClient>}
    */
   async getClient() {
-    const wsUri = config.get('kurentoWsUri');
-    if (!MediaClass.client) {
-      /** @type {string} */
-
-      /** @type {KurentoClient} */
-      //@ts-ignore
-      MediaClass.client = await KurentoClient(wsUri);
-
-      //@ts-ignore
-      MediaClass.client.once('disconnect', async () => {
-        console.log('MEDIA kurento disconnected, trying to connect');
-        await this.stop();
-        setTimeout(() => {
-          this.getClient();
-        }, 5000);
-      });
-      console.log('MEDIA created client');
-
+    try {
+      const wsUri = config.get('kurentoWsUri');
+      if (!MediaClass.client) {
+        /** @type {string} */
+  
+        /** @type {KurentoClient} */
+        //@ts-ignore
+        MediaClass.client = await KurentoClient(wsUri);
+  
+        //@ts-ignore
+        MediaClass.client.once('disconnect', async () => {
+          console.log('MEDIA kurento disconnected, trying to connect');
+          await this.stop();
+          setTimeout(() => {
+            this.getClient();
+          }, 5000);
+        });
+        console.log('MEDIA created client', wsUri);
+  
+      }
+      // console.log(MediaClass.client);
+      return MediaClass.client;
+    } catch (error) {
+      console.error(error);
     }
-    console.log(MediaClass.client);
-    return MediaClass.client;
   }
 
   async createWebRtcEndpoint(offer) {
@@ -182,7 +186,7 @@ class MediaClass {
       //@ts-ignore
       const candidate = KurentoClient.getComplexType('IceCandidate')(event.candidate);
       this.sendData('media/remoteCandidate', candidate);
-      // console.log(`remote ${candidate.candidate}`);
+      console.log(`remote ${candidate.candidate}`);
     });
   }
 

@@ -1,5 +1,5 @@
 import { socket } from './web-socket';
-import { ui } from './ui';
+import { ui } from './ui/ui';
 
 const kurentoUtils = window.kurentoUtils;
 

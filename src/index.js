@@ -2,7 +2,7 @@
 
 import { config } from './config';
 import { KurentoNode } from './kurento-node';
-import { ui } from './ui'; // eslint-disable-line
+import { ui } from './ui/ui';
 import './files';
 import { PlayerEndpoint } from './player-endpoint';
 
