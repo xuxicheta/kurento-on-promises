@@ -1,5 +1,6 @@
 //@ts-check
 
+import './scss/styles.scss';
 import { config } from './config';
 import { KurentoNode } from './kurento-node';
 import { ui } from './ui/ui';

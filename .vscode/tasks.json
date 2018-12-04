@@ -9,9 +9,14 @@
       "command": "npm run dev",
       "problemMatcher": [],
       "presentation": {
-        "reveal": "silent",
+        "reveal": "always",
         "panel": "dedicated"
       },
+      "options": {
+        "env": {
+          "NODE_ENV": "development"
+        }
+      }
       
     },
     {
@@ -20,15 +25,14 @@
       "command": "npm run build",
       "problemMatcher": [],
       "presentation": {
-        "reveal": "silent",
+        "reveal": "always",
         "panel": "shared"
       },
-      // "options": {
-      //   "env": {
-      //     "ITORUM_ENV": "ashvets",
-      //     "NODE_ENV": "development"
-      //   }
-      // },
+      "options": {
+        "env": {
+          "NODE_ENV": "production"
+        }
+      },
     }
   ]
 }
