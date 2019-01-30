@@ -32,10 +32,4 @@ app.use((req, res, next) => {
   next(httpErrors(404));
 });
 
-// error handler
-app.use((err, req, res, next) => {  // eslint-disable-line
-  console.error('error route', req.url);
-  res.status(404).json({});
-});
-
 module.exports = app;
