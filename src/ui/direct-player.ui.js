@@ -1,5 +1,5 @@
 //@ts-check
-class DirectPlayer {
+export class DirectPlayerUI {
   constructor() {
     /** @type {HTMLDivElement} */
     this.filelistSection = document.querySelector('#filelist-section');
@@ -41,32 +41,29 @@ class DirectPlayer {
       this.listLinks.forEach((anc) => {
         anc.classList.remove('active');
       });
-      
-
-    }
+      console.log(el);
+    };
 
     this.listLinks.forEach((anc) => {
-      anc.onclick = 
+      anc.onclick = onClickAnchor;
     });
 
-    Array
-      .from(this.fileList.querySelectorAll('a'))
-      .forEach((el, i, arr) => {
-        el.onclick = () => {
-          arr.forEach((a1) => {
-            a1.classList.remove('active');
-          });
-          el.isActive = !el.isActive;
-          if (el.isActive) {
-            el.classList.add('active');
-            this.elements.playerOutput.src = el.innerText;
-            this.elements.playerOutput.play();
-          } else {
-            this.elements.playerOutput.pause();
-          }
-        };
-      });
+    // Array
+    //   .from(this.fileList.querySelectorAll('a'))
+    //   .forEach((el, i, arr) => {
+    //     el.onclick = () => {
+    //       // arr.forEach((a1) => {
+    //       //   a1.classList.remove('active');
+    //       // });
+    //       el.isActive = !el.isActive;
+    //       if (el.isActive) {
+    //         el.classList.add('active');
+    //         this.elements.playerOutput.src = el.innerText;
+    //         this.elements.playerOutput.play();
+    //       } else {
+    //         this.elements.playerOutput.pause();
+    //       }
+    //     };
+    //   });
   }
 }
-
-export default DirectPlayer;

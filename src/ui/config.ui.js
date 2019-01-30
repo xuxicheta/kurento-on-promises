@@ -6,7 +6,7 @@ const colors = [
   'yellow',
 ];
 
-class Status {
+export class ConfigUI {
   constructor() {
     this.root = document.getElementById('status');
     this.elements = [];
@@ -54,5 +54,3 @@ class Status {
     }
   }
 }
-
-export const status = new Status();

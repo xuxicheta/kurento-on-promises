@@ -1,0 +1,12 @@
+{
+  "name": "Kurento example based on promises",
+  "version": "1.0.0",
+  "description": "Реализует зеркало, запись в файл и player endpoint",
+  "title": "kurento-on-promises",
+  "url" : "https://api.mynstu.me",
+  "sampleUrl": "https://api.mynstu.me",
+  "template": {
+    "withGenerator": true,
+    "withCompare": false
+  }
+}

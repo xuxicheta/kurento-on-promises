@@ -1,0 +1,26 @@
+.status-section .section-content {
+  div {
+    padding: 5px;
+    border-radius: 8px;
+    border: 2px solid grey;
+    display: inline-block;
+    margin-right: 4px;
+  }
+  .key {
+    font-weight: bold;
+  }
+  
+  .value {
+    padding-left: 5px;
+  }
+  
+  .red {
+    border: 2px solid red
+  }
+  
+  .green {
+    border: 2px solid green
+  }
+}
+
+

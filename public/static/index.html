@@ -9,11 +9,13 @@
 
 <body>
 
-  <section id="status">
+  <section id="status" class="status-section">
+    <div id="status-title" class="section-title"><span>status</span></div>
+    <div class="section-content"></div>
   </section>
 
-  <div id="mirror-title" class="filelist-title"><span>mirror stream</span></div>
-  <section id="mirror-section" class="flex-section">
+  <section id="mirror-section">
+    <div id="mirror-title" class="section-title"><span>mirror stream</span></div>
     <div id="start_holder" class="video_holder">
       <video id="videoInput" class="video" autoplay>123</video>
       <div id="videoInput_icon" class="input_icon">
@@ -56,10 +58,6 @@
     <div id="log"></div>
   </section>
 
-
-
-  <script src="./kurento-client.js"></script>
-  <script src="./kurento-utils.js"></script>
   <script src="bundle.js"></script>
 </body>
 

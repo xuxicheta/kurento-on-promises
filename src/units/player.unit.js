@@ -1,9 +1,9 @@
-import { socket } from './web-socket';
-import { ui } from './ui/ui';
+//@ts-check
+import { socket } from '../lib/web-socket';
 
 const kurentoUtils = window.kurentoUtils;
 
-export class PlayerEndpoint {
+export class PlayerUnit {
   constructor({
     videoOutput,
   }) {

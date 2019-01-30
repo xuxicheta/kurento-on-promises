@@ -1,11 +1,5 @@
-body, html {
-  padding: 0;
-  margin: 0;
-}
-
-section {
-  padding: 10px;
-}
+@import "./common.scss";
+@import "./status.scss";
 
 #wsUri {
   font-weight: bold;
@@ -77,30 +71,7 @@ label {
   padding-top: 4px;
 }
 
-.filelist-title {
-  text-align: center;
-  padding: 7px;
-  background: white;
-  position: relative;
-  padding-left: 20px;
-  cursor: pointer;
-  z-index: 2;
 
-}
-.filelist-title span {
-  background: white;
-  padding: 0 20px;
-}
-.filelist-title::before {
-  position: absolute;
-  background: grey;
-  width: 100%;
-  height: 1px;
-  left: 0;
-  top: 15px;
-  content: '';
-  z-index: -1;
-}
 
 .player_holder {
   width: 330px;
@@ -124,29 +95,7 @@ label {
   display: none
 }
 
-#status div {
-  padding: 5px;
-  border-radius: 8px;
-  border: 2px solid grey;
-  display: inline-block;
-  margin-right: 4px;
-}
 
-#status .key {
-  font-weight: bold;
-}
-
-#status .value {
-  padding-left: 5px;
-}
-
-#status .red {
-  border: 2px solid red
-}
-
-#status .green {
-  border: 2px solid green
-}
 
 * .hidden {
   display: none;

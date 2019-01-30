@@ -1,10 +1,12 @@
 
-import { socket } from '../web-socket';
-import DirectPlayer from './direct-player';
+import { socket } from '../lib/web-socket';
+import { ConfigUI } from './config.ui';
+import { DirectPlayerUI } from './direct-player.ui';
 
 export class UI {
   constructor() {
-    this.directPlayer = new DirectPlayer();
+    this.config = new ConfigUI();
+    this.directPlayer = new DirectPlayerUI();
     // this.values = {};
     // this.defaults = {};
 
@@ -45,8 +47,8 @@ export class UI {
     // });
     this.listenSocket();
 
-    this.elements.playerTitle.onclick = () => this.elements.playerSection.classList.toggle('hidden');
-    this.elements.mirrorTitle.onclick = () => this.elements.mirrorSection.classList.toggle('hidden');
+    // this.elements.playerTitle.onclick = () => this.elements.playerSection.classList.toggle('hidden');
+    // this.elements.mirrorTitle.onclick = () => this.elements.mirrorSection.classList.toggle('hidden');
 
   }
 

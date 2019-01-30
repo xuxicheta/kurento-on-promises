@@ -1,10 +1,8 @@
-import { socket } from './web-socket';
-import { ui } from './ui/ui';
-import { files } from './files';
+//@ts-check
+import { socket } from '../lib/web-socket';
+import { WebRtcPeerSendrecv } from '../lib/kurento-utils';
 
-const kurentoUtils = window.kurentoUtils;
-
-export class KurentoNode {
+export class MirrorUnit {
   constructor({
     videoInput,
     videoOutput,
@@ -57,14 +55,25 @@ export class KurentoNode {
   }
 
   /**
+ * @api {post} /record/:filename Record incoming stream to file
+ * @apiName recordStream
+ * @apiGroup record
+ *
+ * @apiParam (query) {string} filename
+ * @apiParam (json) {string} filename
+ * @apiParam  {string} filename2
+ *
+ * @apiSuccess (200) {type} name description
+ *
+ */
+  /**
    *
    * @param {*} options
    * @returns {Promise<string>}
    */
   generateOffer(options) {
     return new Promise((resolve, reject) => {
-      /** @type {WebRtcPeerSendrecv} */
-      this.webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options, function (error) {
+      this.webRtcPeer = WebRtcPeerSendrecv(options, function (error) {
         if (error) {
           reject(error);
         }

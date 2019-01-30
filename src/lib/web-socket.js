@@ -1,33 +1,45 @@
 import { v4 } from 'uuid';
 const URI = `wss://${window.location.hostname}:${window.location.port}/ws`;
 
-export class WS {
+class WS {
+  /**
+   * @param {string} uri
+   */
   constructor(uri) {
-    if (localStorage.getItem('sessionId')) {
-      this.sessionId = localStorage.getItem('sessionId');
-    } else {
-      this.sessionId = v4();
-      localStorage.setItem('sessionId', this.sessionId);
-    }
 
+    this.sessionId = this.getSessionId();
     this.uri = `${uri}?${this.sessionId}`;
-    /** @type {WebSocket} */
 
     this.handlers = {};
     this.waitings = [];
     this.socketInit();
   }
 
+  /**
+   * @returns {string}
+   */
+  getSessionId() {
+    if (localStorage.getItem('sessionId')) {
+      return localStorage.getItem('sessionId');
+    }
+    const sessionId = v4();
+    localStorage.setItem('sessionId', sessionId);
+    return sessionId;
+  }
+
   socketInit() {
     this.socket = new WebSocket(this.uri);
 
-    this.socket.onmessage = ({ data }) => {
+    this.socket.onmessage = ({ dataString }) => {
       try {
-        const dataParsed = JSON.parse(data);
-        const type = dataParsed.type;
+        const data = JSON.parse(dataString);
+
+        /** @type {string} */
+        const type = data.type;
+
         if (Array.isArray(this.handlers[type])) {
           this.handlers[type].forEach((func) => {
-            func(dataParsed.data);
+            func(data.data);
           });
         }
       } catch (error) {
@@ -37,7 +49,12 @@ export class WS {
 
     this.socket.onopen = () => {
       console.log(`socket ${this.uri} opened, session ${this.sessionId}`);
-      this.waitings.forEach(func => func());
+      if (this.socket.OPEN) {
+        this.waitings.forEach((msg) => {
+          this.socket.send(msg);
+        });
+        this.waitings = [];
+      }
     };
 
     this.socket.onclose = () => {
@@ -46,10 +63,6 @@ export class WS {
         this.socketInit();
       }, 10000);
     };
-
-    // this.socket.onerror = () => {
-    //   console.error(`socket ${this.uri} error, session ${this.sessionId}`);
-    // };
   }
 
 
@@ -66,7 +79,7 @@ export class WS {
     if (this.socket && this.socket.readyState === 1) {
       this.socket.send(msg);
     } else {
-      this.waitings.push(() => this.socket.send(msg));
+      this.waitings.push(msg);
     }
   }
 
@@ -106,5 +119,3 @@ export class WS {
 }
 
 export const socket = new WS(URI);
-
-socket.setHandler('session/ping', () => socket.sendData('pong', ''));
