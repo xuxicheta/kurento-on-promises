@@ -22,7 +22,11 @@ module.exports = {
     };
     return process.env.COLORED_LOG ? colors : noColors;
   },
+
   get color() {
     return this.getColoringStringFabric();
   },
+
+  log: console.log,
+  error: console.error,
 };

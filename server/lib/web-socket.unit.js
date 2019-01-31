@@ -1,0 +1,87 @@
+//@ts-check
+/**
+ * @typedef {object} MessageData
+ * @property {string} type
+ * @property {any} params
+ * @property {number} id
+ */
+
+const WebSocket = require('ws');
+
+const { Session } = require('./session.class');
+const logger = require('../modules/logger/logger.module');
+const log = logger.log;
+const WS = logger.color.blue('WS');
+
+class WebSocketUnit {
+  constructor() {
+    /** @type {WebSocket.Server} */
+    this.wsServer = null;
+    /** @type {Session[]} */
+    this.sessions = [];
+  }
+
+  create(server) {
+    this.wsServer = new WebSocket.Server({
+      server,
+      path: '/ws',
+    });
+
+    this.wsServer.on('connection', (ws, req) => {
+      const sessionId = req.url.slice(4);
+      log(`${WS} connection with id "${sessionId}" from ip ${req.socket.remoteAddress}`);
+
+      const session = new Session(sessionId);
+      this.sessions.push(session);
+
+      ws.on('message', (message) => {
+        try {
+          /** @type {MessageData} */
+          const messageData = JSON.parse(message.toString());
+          session.onMessageData(messageData);
+        } catch (error) {
+          logger.error(error);
+        }
+      });
+
+      session.on('close', () => {
+        this.sessions = this.sessions.filter(item => item !== session);
+        if (ws.readyState !== ws.CLOSED) {
+          ws.close();
+        }
+      });
+
+      session.on('outcomeData', (data) => {
+        const message = JSON.stringify(data);
+        ws.send(message);
+      });
+
+
+      let isAlive = true;
+      const pingInterval = setInterval(() => {
+        try {
+          if (!isAlive) {
+            ws.close();
+          }
+
+          ws.ping();
+        } catch (e) {
+          logger.warn('WS cant ping');
+        }
+        isAlive = false;
+      }, 5000);
+
+      ws.on('pong', () => {
+        isAlive = true;
+      });
+
+      ws.on('close', () => {
+        clearInterval(pingInterval);
+        session.close();
+      });
+    });
+  }
+}
+
+
+module.exports = new WebSocketUnit();

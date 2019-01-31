@@ -1,88 +1,57 @@
 //@ts-check
-const { MediaClass } = require('./media.class');
+const { EventEmitter } = require('events');
 
-class Session {
+const { MediaService } = require('./media.service');
+const { FilesService } = require('./files.service');
+const logger = require('../modules/logger/logger.module');
+const SESSION = logger.color.magenta('SESSION');
+
+class Session extends EventEmitter {
   /**
-   *
    * @param {string} sessionId
-   * @param {WebSocket} ws
    */
-  constructor(sessionId, ws) {
+  constructor(sessionId) {
+    super();
     this.createdAt = new Date();
     this.sessionId = sessionId;
-    this.ws = ws;
-    /** @type {MediaClass} */
-    this.media = null;
-    /** @type {MediaClass} */
-    this.player = null;
+    this.outcomeMessageId = 0;
 
-    this.onremove = () => undefined;
-    this.socketTimeout = null;
+    const sendData = this.sendData.bind(this);
+    this.mediaService = new MediaService({ sendData });
+    this.filesService = new FilesService({ sendData });
   }
 
   /**
-   * @param {string} offer
+   * @param {import('./web-socket.unit').MessageData} messageData
    */
-  createMedia(offer) {
-    this.media = new MediaClass(offer);
-    this.media.onSend((type, data) => {
-      this.sendData(type, data);
-    });
-    return this.media;
-  }
-
-  /**
-   * @param {string} offer
-   */
-  createPlayer(offer) {
-    this.player = new MediaClass(offer);
-    this.player.onSend((type, data) => {
-      this.sendData(type, data);
-    });
-    return this.player;
-  }
-
-  onCloseSocket() {
-    console.log(`WS ! breaks "${this.sessionId}" `);
-    this.socketTimeout = setTimeout(() => {
-      this.close();
-    }, 10000);
-  }
-
-  /**
-   * @param {WebSocket} ws
-   */
-  resume(ws) {
-    this.ws = ws;
-    clearTimeout(this.socketTimeout);
-    console.log(`SESSION > resumed "${this.sessionId}"`);
-    return this;
+  onMessageData(messageData) {
+    if (!messageData.type) {
+      return;
+    }
+    if (/^media/.test(messageData.type)) {
+      this.mediaService.onMediaMessageData(messageData);
+    } else if (/^files/.test(messageData.type)) {
+      this.filesService.onFilesMessageData(messageData);
+    }
   }
 
   close() {
-    console.log(`SESSION <<< "${this.sessionId}" closed`);
-    this.onremove();
+    this.emit('close');
+    this.removeAllListeners();
+    logger.log(`${SESSION} <<< "${this.sessionId}" closed`);
   }
 
   /**
-   * @param {string} type
-   * @param {*} data
+   * @param {string} method
+   * @param {*} params
    */
-  sendData(type, data = '') {
-    const str = JSON.stringify({
-      type,
-      data,
+  sendData(method, params = null) {
+    this.emit('outcomeData', {
+      method,
+      params,
+      id: this.outcomeMessageId++,
     });
-
-    try {
-      this.ws.send(str);
-      return true;
-    } catch (e) {
-      //@ts-ignore
-      console.error(`WS failed to send data, type "${type}"  session ${this.sessionId}`);
-      return false;
-    }
   }
 }
 
-module.exports = Session;
+module.exports.Session = Session;

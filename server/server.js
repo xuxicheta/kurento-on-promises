@@ -3,39 +3,43 @@
 require('dotenv').config();
 const https = require('https');
 const http = require('http');
+const path = require('path');
+const fs = require('fs');
 
-const log = require('./lib/log.class').getConsole('SERVER');
-const { MediaClass } = require('./lib/media.class');
-const { PlayerClass } = require('./lib/player.class');
+const logger = require('./modules/logger/logger.module');
+const webSocketUnit = require('./lib/web-socket.unit');
+
+const log = logger.log;
+const SERVER = logger.color.green('SERVER');
 
 /****  init app  ****/
-const config = require('./lib/config.lib');
-config.setGlobal(`${__dirname}/..`);
-
-const socket = require('./lib/web-socket.lib');
-const files = require('./lib/files.lib');
+const { config } = require('./config');
+config.setRootDir(`${__dirname}/..`);
 
 const app = require('./app');
 
 /**
- * Create HTTP server.
+ * Create HTTP servers.
  */
+const certDir = path.resolve(config.globalDirName, 'cert', config.get('nodeHostname'));
+const certs = {
+  key: fs.readFileSync(`${certDir}/privkey.pem`).toString(),
+  cert: fs.readFileSync(`${certDir}/fullchain.pem`).toString(),
+  ca: fs.readFileSync(`${certDir}/chain.pem`).toString(),
+};
 
-const server = http.createServer(app);
-const serverSSL = https.createServer(files.readCertificates(), app);
+const httpServer = http.createServer(app);
+const httpsServer = https.createServer(certs, app);
 
-serverSSL.listen(config.get('httpsPort'))
+httpsServer.listen(config.get('httpsPort'))
   .on('error', onError)
   .on('listening', () => {
-      log(`SERVER listening on https://${config.get('nodeHostname')}:${config.get('httpsPort')}`);
+      log(`${SERVER} listening on https://${config.get('nodeHostname')}:${config.get('httpsPort')}`);
   });
-socket.create(serverSSL);
-config.assignWebSocket(socket);
-files.assignWebSocket(socket);
-MediaClass.assignWebSocket(socket);
-PlayerClass.assignWebSocket(socket);
 
-server.listen(config.get('httpPort'))
+webSocketUnit.create(httpsServer);
+
+httpServer.listen(config.get('httpPort'))
   .on('error', onError)
   .on('listening', () => {
     log(`SERVER listening on http://${config.get('nodeHostname')}:${config.get('httpPort')}`);
@@ -57,11 +61,11 @@ function onError(error) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(`SERVER ${bind} requires elevated privileges`);
+      logger.error(`SERVER ${bind} requires elevated privileges`);
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      console.error(`SERVER ${bind} is already in use`);
+      logger.error(`SERVER ${bind} is already in use`);
       process.exit(1);
       break;
     default:
@@ -70,5 +74,5 @@ function onError(error) {
 }
 
 process.on('beforeExit', () => {
-  socket.wsServer.clients.forEach(ws => ws.close());
+  webSocketUnit.wsServer.clients.forEach(ws => ws.close());
 });
