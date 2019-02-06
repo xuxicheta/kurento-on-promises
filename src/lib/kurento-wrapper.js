@@ -1,7 +1,6 @@
 
 //@ts-ignore
-import { WebRtcPeerSendrecv } from './kurento-utils';
-
+import { WebRtcPeer } from './kurento-utils';
 
 /**
  * @typedef {import('kurento-utils').WebRtcPeer} WebRtcPeer
@@ -42,7 +41,7 @@ export const KurentoWrapper = {
    */
   createWebRtcPeer(options) {
     return new Promise((resolve, reject) => {
-      WebRtcPeerSendrecv(options, function (error) {
+      WebRtcPeer.WebRtcPeerSendrecv(options, function (error) {
         if (error) {
           reject(error);
         }
@@ -78,13 +77,4 @@ export const KurentoWrapper = {
       });
     });
   },
-  // /**
-  //  *
-  //  * @param {WebRtcPeer} webRtcPeer
-  //  */
-  // gatherCandidate(webRtcPeer) {
-  //   return new Promise((resolve, reject) => {
-  //     webRtcPeer.
-  //   });
-  // }
 };

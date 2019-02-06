@@ -15,6 +15,8 @@ const config = {
   hostname: process.env.NODE_HOSTNAME,
   ip: process.env.NODE_IP,
 
+  iceServers: process.env.ICE_SERVERS || [],
+
   recordEndpoint: process.env.RECORD_ENDPOINT,
 };
 

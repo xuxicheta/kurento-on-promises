@@ -1,3 +1,9 @@
 //@ts-check
-console.log('123');
 import './scss/styles.scss';
+import { WebSocketModule } from './modules/web-socket.module';
+import { MirrorModule } from './modules/mirror.module';
+
+const ws = new WebSocketModule();
+const mirrorInstance = new MirrorModule(ws);
+
+

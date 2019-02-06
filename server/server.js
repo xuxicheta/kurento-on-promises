@@ -40,7 +40,7 @@ webSocketUnit.create(httpsServer);
 httpServer.listen(config.httpPort)
   .on('error', onError)
   .on('listening', () => {
-    log(`SERVER listening on http://${config.hostname}:${config.httpPort}`);
+    log(`${SERVER} listening on http://${config.hostname}:${config.httpPort}`);
 });
 
 /**

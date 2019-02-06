@@ -1,7 +1,7 @@
 //@ts-check
 /**
  * @typedef {object} MessageData
- * @property {string} type
+ * @property {string} method
  * @property {any} params
  * @property {number} id
  */
@@ -36,6 +36,9 @@ class WebSocketUnit {
 
       ws.on('message', (message) => {
         try {
+          if (process.env.WS_LOG) {
+            log(logger.color.red('in'), message);
+          }
           /** @type {MessageData} */
           const messageData = JSON.parse(message.toString());
           session.onMessageData(messageData);
@@ -53,6 +56,9 @@ class WebSocketUnit {
 
       session.on('outcomeData', (data) => {
         const message = JSON.stringify(data);
+        if (process.env.WS_LOG) {
+          log(logger.color.blue('out'), message);
+        }
         ws.send(message);
       });
 

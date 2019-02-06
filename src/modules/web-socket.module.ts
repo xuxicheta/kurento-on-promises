@@ -4,18 +4,25 @@ import { logger } from './logger.module';
 const WS = logger.color.cyan('WS');
 
 export class WebSocketModule extends EventTarget {
+  sessionId = this.getSessionId();
+  uri = `wss://${window.location.hostname}:${window.location.port}/ws?${this.sessionId}`;
+  socket: WebSocket;
+  waitings: string[] = [];
+  counter = 0;
+
   constructor() {
     super();
     this.sessionId = this.getSessionId();
-    this.uri = `wss://${window.location.hostname}:${window.location.port}/ws?${this.sessionId}`;
-
-    this.handlers = {};
-    this.waitings = [];
     this.socketInit();
   }
 
-  emit(eventName, data) {
+  emit(eventName: string, data: any) {
     this.dispatchEvent(new CustomEvent(eventName, { detail: data }));
+  }
+
+  on(eventName: string, callback: EventListenerOrEventListenerObject) {
+    this.addEventListener(eventName, callback);
+    return this;
   }
 
   /**
@@ -34,6 +41,9 @@ export class WebSocketModule extends EventTarget {
     this.socket = new WebSocket(this.uri);
     this.socket.addEventListener('open', () => {
       logger.log(`${WS} socket ${this.uri} opened, session ${this.sessionId}`);
+      while (this.waitings.length) {
+        this.socket.send(this.waitings.shift());
+      }
     });
     this.socket.addEventListener('close', () => {
       logger.warn(`${WS} socket ${this.uri} closed, session ${this.sessionId}`);
@@ -42,7 +52,12 @@ export class WebSocketModule extends EventTarget {
       }, 10000);
     });
     this.socket.addEventListener('message', (evt) => {
-      this.emit('message', evt.data);
+      try {
+        const incomingData = JSON.parse(evt.data);
+        this.emit(incomingData.method, incomingData.params);
+      } catch (error) {
+        logger.error(WS, error);
+      }
     });
   }
 
@@ -51,10 +66,11 @@ export class WebSocketModule extends EventTarget {
    * @param {string} type
    * @param {*} data
    */
-  sendData(type, data = '') {
+  sendData(method: string, params: any = null) {
     const msg = JSON.stringify({
-      type,
-      data,
+      method,
+      params,
+      id: this.counter++,
       sessionId: this.sessionId,
     });
     if (this.socket && this.socket.readyState === 1) {
@@ -62,39 +78,5 @@ export class WebSocketModule extends EventTarget {
     } else {
       this.waitings.push(msg);
     }
-  }
-
-  /**
-   * @callback wsHandlerCallback
-   * @param {*} data
-   */
-
-  /**
-   * @param {string} prop
-   * @param {wsHandlerCallback} handler
-   */
-  addHandler(prop, handler) {
-    if (Array.isArray(this.handlers[prop])) {
-      this.handlers[prop].push(handler);
-    } else {
-      this.handlers[prop] = [handler];
-    }
-  }
-
-  /**
-   * @param {string} prop
-   */
-  clearHandlers(prop) {
-    this.handlers[prop] = null;
-  }
-
-  /**
-   * @param {string} prop
-   * @param {wsHandlerCallback} handler
-   */
-  setHandler(prop, handler) {
-    this.clearHandlers(prop);
-    this.addHandler(prop, handler);
-    return this;
   }
 }

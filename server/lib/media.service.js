@@ -31,7 +31,10 @@ class MediaService {
    * @param {import('./web-socket.unit').MessageData} messageData
    */
   onMediaMessageData(messageData) {
-    switch (messageData.type) {
+    switch (messageData.method) {
+      case 'media/getIceServers':
+        this.sendData('media/iceServers', config.iceServers);
+        break;
       case 'media/offer':
         this.onOffer(messageData.params.offer);
         break;

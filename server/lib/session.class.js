@@ -19,18 +19,21 @@ class Session extends EventEmitter {
     const sendData = this.sendData.bind(this);
     this.mediaService = new MediaService({ sendData });
     this.filesService = new FilesService({ sendData });
+
+    logger.log(`${SESSION} created "${this.sessionId}"`);
+
   }
 
   /**
    * @param {import('./web-socket.unit').MessageData} messageData
    */
   onMessageData(messageData) {
-    if (!messageData.type) {
+    if (!messageData.method) {
       return;
     }
-    if (/^media/.test(messageData.type)) {
+    if (/^media/.test(messageData.method)) {
       this.mediaService.onMediaMessageData(messageData);
-    } else if (/^files/.test(messageData.type)) {
+    } else if (/^files/.test(messageData.method)) {
       this.filesService.onFilesMessageData(messageData);
     }
   }
@@ -38,7 +41,7 @@ class Session extends EventEmitter {
   close() {
     this.emit('close');
     this.removeAllListeners();
-    logger.log(`${SESSION} <<< "${this.sessionId}" closed`);
+    logger.log(`${SESSION} closed "${this.sessionId}"`);
   }
 
   /**

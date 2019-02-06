@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "prod": "npm install && npm install -D && npm run build && npm start",
-    "start": "LOGGER=* node server/server.js",
+    "start": "node server/server.js",
     "dev": "webpack --progress --colors -w",
     "build": "webpack --progress --colors"
   },
