@@ -12,7 +12,7 @@ logs/*
 
 dist/*
 files/*
-cert/*/*
+server/cert/*/*
 
 public/dist/*
 public/dist/bundle.js

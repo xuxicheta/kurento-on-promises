@@ -2,7 +2,7 @@
 const path = require('path');
 const fs = require('fs');
 const { promisify } = require('util');
-const config = require('../config');
+const { config } = require('../config');
 
 const logger = require('../modules/logger/logger.module');
 const FILES = logger.color.magenta('MEDIA');
@@ -13,7 +13,7 @@ class FilesService {
   constructor({ sendData }) {
     /** @type {(method: string, params?: any) => void} */
     this.sendData = sendData;
-    this.filesDir = path.join(config.globalDirName, config.get('filesPath'));
+    this.filesDir = config.filesPath;
   }
 
   /**

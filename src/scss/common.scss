@@ -4,10 +4,26 @@ body, html {
 }
 
 section {
-  padding: 10px;
+  margin: 10px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
 }
 
-.section-title {
+.video {
+  width: 320px;
+  height: 240px;
+  border: 2px solid black;
+  display: inline-block;
+}
+
+.video-button-holder {
+  width: 320px;
+  display: inline-block;
+  text-align: left;
+}
+
+.title {
   text-align: center;
   padding: 7px;
   background: white;
@@ -15,17 +31,24 @@ section {
   padding-left: 20px;
   cursor: pointer;
   z-index: 2;
-
-  span {
-    background: white;
-    padding: 0 20px;
-  }
+  display: inline-block;
+  
   &:before {
     position: absolute;
     background: grey;
-    width: 100%;
     height: 1px;
-    left: 0;
+    left: -2000px;
+    right: 100%;
+    top: 15px;
+    content: '';
+    z-index: -1;
+  }
+  &:after {
+    position: absolute;
+    background: grey;
+    height: 1px;
+    left: 100%;
+    right: -2000px;
     top: 15px;
     content: '';
     z-index: -1;

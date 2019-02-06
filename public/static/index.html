@@ -9,50 +9,28 @@
 
 <body>
 
-  <section id="status" class="status-section">
-    <div id="status-title" class="section-title"><span>status</span></div>
-    <div class="section-content"></div>
+  <section id="status" class="status">
+    <div class="title">Status</div>
+    <div class="content"></div>
   </section>
 
-  <section id="mirror-section">
-    <div id="mirror-title" class="section-title"><span>mirror stream</span></div>
-    <div id="start_holder" class="video_holder">
-      <video id="videoInput" class="video" autoplay>123</video>
-      <div id="videoInput_icon" class="input_icon">
-        <img id="play_icon" src="assets/play.svg" alt="">
-        <img id="stop_icon" src="assets/stop.svg" alt="" style="display: none">
+  <section id="mirror">
+    <div class="title">Mirror stream</div>
+    <div class="content">
+      <div id="mirror-videobar">
+        <video id="localVideo" class="video" autoplay></video>
+        <video id="remoteVideo" class="video" autoplay></video>
       </div>
-    </div>
-    <div id="stop_holder" class="video_holder">
-      <video id="videoOutput" class="video" autoplay></video>
-      <span id="recordStatus"></span>
-      <div id="videoOutput_icon" class="input_icon">
-        <img id="rec_icon" src="assets/rec.svg" alt="" style="display: none">
-      </div>
-    </div>
-  </section>
-
-
-  <section id="filelist-section" class="flex-section">
-    <div id="filelist-title" class="filelist-title"><span>direct player</span> </div>
-    <div id="filelist-content ">
-      <div id="filelist" class="filelist"></div>
-      <div id="player_holder" class="video_holder player_holder">
-        <video id="playerOutput" class="video" controls></video>
+      <div id="mirror-buttonbar">
+        <div class="video-button-holder">
+          <input id="mirror-play-button" type="button" value="Play" class="bot8">
+          <input id="mirror-recording-button" type="button" value="Recording" class="bot8">
+        </div>
+        <div class="video-button-holder"></div>
       </div>
     </div>
   </section>
 
-  <div id="player-title" class="filelist-title"><span>playerendpoint</span></div>
-  <section id="player-section" class="flex-section hidden">
-    <div id="filelist2" class="filelist"></div>
-    <div id="player2_holder" class="video_holder player_holder">
-      <video id="playerEndpointOutput" class="video" controls autostart></video>
-    </div>
-    <div id="player3_holder" class="video_holder player_holder">
-      <video id="player3EndpointOutput" class="video" controls autostart></video>
-    </div>
-  </section>
 
   <section>
     <div id="log"></div>

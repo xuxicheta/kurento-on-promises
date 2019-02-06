@@ -9,11 +9,6 @@ const { config } = require('./config');
 
 const app = express();
 
-// app.use((req, res, next) => {
-//   console.log(req.url);
-//   next();
-// });
-
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

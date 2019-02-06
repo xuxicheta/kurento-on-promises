@@ -3,7 +3,7 @@ const dns = require('dns');
 const path = require('path');
 
 const config = {
-  rootDir: path.resolve(__dirname),
+  rootDir: path.resolve(__dirname, '..'),
   filesPath: process.env.FILES_PATH,
 
   httpPort: process.env.HTTP_PORT,
@@ -12,17 +12,18 @@ const config = {
   kurentoFilesPath: process.env.KURENTO_FILES_PATH,
   kurentoWsUri: process.env.KURENTO_WS_URI,
 
-  nodeHostname: process.env.NODE_HOSTNAME,
-  nodeIp: process.env.NODE_IP,
+  hostname: process.env.NODE_HOSTNAME,
+  ip: process.env.NODE_IP,
 
   recordEndpoint: process.env.RECORD_ENDPOINT,
 };
 
 
-dns.resolve4(config.nodeHostname, (err, addresses) => {
+dns.resolve4(config.hostname, (err, addresses) => {
   if (err) {
-    console.error('CONFIG dsn resolve error on hostname', this._data.hostname);
+    console.error('CONFIG dsn resolve error on hostname', config.hostname);
   }
-  this.set('recordIp', addresses[0]);
+  config.ip = addresses[0];
 });
+
 module.exports.config = config;

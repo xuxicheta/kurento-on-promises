@@ -1,18 +1,21 @@
+//@ts-check
 import { v4 } from 'uuid';
-const URI = `wss://${window.location.hostname}:${window.location.port}/ws`;
+import { logger } from './logger.module';
+const WS = logger.color.cyan('WS');
 
-class WS {
-  /**
-   * @param {string} uri
-   */
-  constructor(uri) {
-
+export class WebSocketModule extends EventTarget {
+  constructor() {
+    super();
     this.sessionId = this.getSessionId();
-    this.uri = `${uri}?${this.sessionId}`;
+    this.uri = `wss://${window.location.hostname}:${window.location.port}/ws?${this.sessionId}`;
 
     this.handlers = {};
     this.waitings = [];
     this.socketInit();
+  }
+
+  emit(eventName, data) {
+    this.dispatchEvent(new CustomEvent(eventName, { detail: data }));
   }
 
   /**
@@ -29,40 +32,18 @@ class WS {
 
   socketInit() {
     this.socket = new WebSocket(this.uri);
-
-    this.socket.onmessage = ({ dataString }) => {
-      try {
-        const data = JSON.parse(dataString);
-
-        /** @type {string} */
-        const type = data.type;
-
-        if (Array.isArray(this.handlers[type])) {
-          this.handlers[type].forEach((func) => {
-            func(data.data);
-          });
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    this.socket.onopen = () => {
-      console.log(`socket ${this.uri} opened, session ${this.sessionId}`);
-      if (this.socket.OPEN) {
-        this.waitings.forEach((msg) => {
-          this.socket.send(msg);
-        });
-        this.waitings = [];
-      }
-    };
-
-    this.socket.onclose = () => {
-      console.warn(`socket ${this.uri} closed, session ${this.sessionId}`);
+    this.socket.addEventListener('open', () => {
+      logger.log(`${WS} socket ${this.uri} opened, session ${this.sessionId}`);
+    });
+    this.socket.addEventListener('close', () => {
+      logger.warn(`${WS} socket ${this.uri} closed, session ${this.sessionId}`);
       setTimeout(() => {
         this.socketInit();
       }, 10000);
-    };
+    });
+    this.socket.addEventListener('message', (evt) => {
+      this.emit('message', evt.data);
+    });
   }
 
 
@@ -117,5 +98,3 @@ class WS {
     return this;
   }
 }
-
-export const socket = new WS(URI);
