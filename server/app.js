@@ -12,8 +12,8 @@ const app = express();
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(express.static(path.resolve(config.rootDir, 'public', 'static')));
-app.use(express.static(path.resolve(config.rootDir, 'public', 'dist')));
+app.use(express.static(path.resolve(config.rootDir, 'client', 'static')));
+app.use(express.static(path.resolve(config.rootDir, 'client', 'dist')));
 app.use(express.static(path.resolve(config.rootDir, 'files')));
 app.use(router);
 app.get('favicon.ico', (req, res) => {

@@ -1,26 +1,14 @@
 # dependencies
 /node_modules
 
-# IDEs and editors
-/.idea
-/.vs
-
 # File storages
-upload/*
-
+files/*
 logs/*
 
-dist/*
-files/*
+client/dist/*
 server/cert/*/*
-
-public/dist/*
-public/dist/bundle.js
-public/dist/bundle.js.map
-
 
 npm-debug.log
 package-lock.json
 
 .env
-doc
