@@ -2,7 +2,7 @@
 /node_modules
 
 # File storages
-docker/files/*
+docker/files/*.mp4
 logs/*
 
 client/dist/*
