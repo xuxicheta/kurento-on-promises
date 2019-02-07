@@ -10,9 +10,9 @@ services:
     - "8433:8433"
     - "49152-65535:49152-65535/udp"
     volumes:
-    - './config/kurento:/etc/kurento'
-    - './files:/files'
-    - './files:/tmp'
+    - './docker/config/kurento:/etc/kurento'
+    - './docker/files:/files'
+    - './docker/files:/tmp'
 
     depends_on:
     - coturn
@@ -32,7 +32,7 @@ services:
       REALM: kurento.org
       PASSWORD: youhavetoberealistic
     volumes:
-      - ./config/coturn/turnserver.conf:/etc/turnserver.conf
+      - ./docker/config/coturn/turnserver.conf:/etc/turnserver.conf
     network_mode: "host"
 
   # web:

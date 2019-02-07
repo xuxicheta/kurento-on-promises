@@ -2,7 +2,7 @@
 /node_modules
 
 # File storages
-files/*
+docker/files/*
 logs/*
 
 client/dist/*
