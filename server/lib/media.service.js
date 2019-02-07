@@ -21,7 +21,7 @@ class MediaService {
     /** @type {import('kurento-client-elements').RecorderEndpoint} */
     this.fileRecordEndpoint = null;
 
-    this.candidatesQueue = [];
+    this.frozenCandidates = [];
     this.offer = null;
     this.answer = null;
     this.init();
@@ -31,30 +31,61 @@ class MediaService {
    * @param {import('./web-socket.unit').MessageData} messageData
    */
   onMediaMessageData(messageData) {
-    switch (messageData.method) {
-      case 'media/getIceServers':
-        this.sendData('media/iceServers', config.iceServers);
-        break;
-      case 'media/offer':
-        this.onOffer(messageData.params.offer);
-        break;
-      case 'media/localCandidate':
-        this.onLocalCandidate(messageData.params.candidate);
-        break;
-      case 'media/stop':
-        this.onStop();
-        break;
-      default:
+    try {
+      switch (messageData.method) {
+        case 'media/getIceServers':
+          this.sendData('media/iceServers', config.iceServers);
+          break;
+        case 'media/sdpOffer':
+          this.onOffer(messageData.params.sdpOffer);
+          break;
+        case 'media/localCandidate':
+          this.onLocalCandidate(messageData.params.candidate);
+          break;
+        case 'media/clientStop':
+          this.onStop();
+          break;
+        default:
+      }
+    } catch (error) {
+      logger.error(MEDIA, error);
     }
   }
 
-  onOffer(offer) {
+  async onOffer(offer) {
     this.offer = offer;
-    MediaLayer.getAnswer(this.webRtcEndpoint, offer)
-      .then((answer) => {
-        this.answer = answer;
-        this.sendData('media/answer', { answer });
-      });
+
+    this.webRtcEndpoint = await MediaLayer.createWebRtcEndpoint(this.pipeline);
+    while (this.frozenCandidates.length) {
+      this.webRtcEndpoint.addIceCandidate(this.frozenCandidates.shift(), () => { });
+    }
+
+    //@ts-ignore
+    this.webRtcEndpoint.on('OnIceCandidate', (event) => {
+      //@ts-ignore
+      const candidate = KurentoClient.getComplexType('IceCandidate')(event.candidate);
+      this.sendData('media/remoteCandidate', { candidate });
+    });
+
+    // const filename = MediaLayer.generateBaseRecordName();
+    // this.recorderEndpoint = await MediaLayer.createRecorderEndpoint(this.pipeline, config.recordEndpoint + filename);
+    // //@ts-ignore
+    // this.recorderEndpoint.on('Recording', async () => {
+    //   //@ts-ignore
+    //   logger.log(`${MEDIA} recording started "${await this.recorderEndpoint.getUri()}"`);
+    //   this.sendData('media/record-started');
+    // });
+
+    // //@ts-ignore
+    // this.recorderEndpoint.on('Stopped', async () => {
+    //   //@ts-ignore
+    //   logger.log(`MEDIA record stopped "${await this.recorderEndpoint.getUri()}"`);
+    // });
+
+    this.answer = await MediaLayer.getAnswer(this.webRtcEndpoint, offer)
+    this.sendData('media/sdpAnswer', { sdpAnswer: this.answer });
+    await MediaLayer.connectEndpoints(this.webRtcEndpoint, this.webRtcEndpoint);
+    logger.log('connected');
   }
 
   /**
@@ -65,32 +96,7 @@ class MediaService {
     this.client = await MediaLayer.createClient(config.kurentoWsUri);
     this.pipeline = await MediaLayer.createPipeline(this.client);
 
-    this.webRtcEndpoint = await MediaLayer.createWebRtcEndpoint(this.pipeline);
-    while (this.candidatesQueue.length) {
-      this.webRtcEndpoint.addIceCandidate(this.candidatesQueue.shift(), () => { });
-    }
 
-    //@ts-ignore
-    this.webRtcEndpoint.on('OnIceCandidate', (event) => {
-      //@ts-ignore
-      const candidate = KurentoClient.getComplexType('IceCandidate')(event.candidate);
-      this.sendData('media/remoteCandidate', candidate);
-    });
-
-    const filename = MediaLayer.generateBaseRecordName();
-    this.recorderEndpoint = await MediaLayer.createRecorderEndpoint(this.pipeline, config.recordEndpoint + filename);
-    //@ts-ignore
-    this.recorderEndpoint.on('Recording', async () => {
-      //@ts-ignore
-      logger.log(`${MEDIA} recording started "${await this.recorderEndpoint.getUri()}"`);
-      this.sendData('media/record-started');
-    });
-
-    //@ts-ignore
-    this.recorderEndpoint.on('Stopped', async () => {
-      //@ts-ignore
-      logger.log(`MEDIA record stopped "${await this.recorderEndpoint.getUri()}"`);
-    });
   }
 
   setDebugListeners() {
@@ -130,12 +136,15 @@ class MediaService {
       //@ts-ignore
       this.webRtcEndpoint.addIceCandidate(candidate);
     } else {
-      this.candidatesQueue.push(candidate);
+      this.frozenCandidates.push(candidate);
     }
   }
 
   onStop() {
     MediaLayer.stopEndpoint(this.recorderEndpoint);
+    //@ts-ignore
+    this.webRtcEndpoint.release(error => error && logger.error(error));
+    this.webRtcEndpoint = null;
   }
 
 }

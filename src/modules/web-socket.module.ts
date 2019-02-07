@@ -1,9 +1,10 @@
 //@ts-check
 import { v4 } from 'uuid';
+import { EventEmitter } from 'events';
 import { logger } from './logger.module';
 const WS = logger.color.cyan('WS');
 
-export class WebSocketModule extends EventTarget {
+export class WebSocketModule extends EventEmitter {
   sessionId = this.getSessionId();
   uri = `wss://${window.location.hostname}:${window.location.port}/ws?${this.sessionId}`;
   socket: WebSocket;
@@ -14,15 +15,6 @@ export class WebSocketModule extends EventTarget {
     super();
     this.sessionId = this.getSessionId();
     this.socketInit();
-  }
-
-  emit(eventName: string, data: any) {
-    this.dispatchEvent(new CustomEvent(eventName, { detail: data }));
-  }
-
-  on(eventName: string, callback: EventListenerOrEventListenerObject) {
-    this.addEventListener(eventName, callback);
-    return this;
   }
 
   /**

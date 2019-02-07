@@ -12,7 +12,7 @@
       "env": {
         "NODE_ENV": "development",
         "COLORED_LOG": "1",
-        "WS_LOG": "1"
+        "WS_LOG": "1",
       },
       // "cwd": "${workspaceFolder}/itorum-backend"
     }

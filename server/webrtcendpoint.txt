@@ -1,0 +1,37 @@
+_events:Object {removeListener: , newListener: , _describe: , …}
+_eventsCount:6
+_invoke:function (transaction, method, params, callback){ … }
+_maxListeners:function eventNames() { … }
+addIceCandidate:function (candidate, callback){ … }
+addListener:function addListener(type, listener) { … }
+addTag:function (key, value, callback){ … }
+closeDataChannel:function (channelId, callback){ … }
+connect:function (sink, mediaType, sourceMediaDescription, sinkMediaDescription, callback){ … }
+constructor:function WebRtcEndpoint(){ … }
+createDataChannel:function (label, ordered, maxPacketLifeTime, maxRetransmits, protocol, callback){ … }
+disconnect:function (sink, mediaType, sourceMediaDescription, sinkMediaDescription, callback){ … }
+domain:null
+emit:function emit(...args) { … }
+eventNames:function eventNames() { … }
+gatherCandidates:function (callback){ … }
+generateOffer:function (callback){ … }
+getChildren:function (callback){ … }
+getChilds:function (callback){ … }
+getConnectionState:function (callback){ … }
+getCreationTime:function (callback){ … }
+getGstreamerDot:function (details, callback){ … }
+getICECandidatePairs:function (callback){ … }
+getIceConnectionState:function (callback){ … }
+getLocalSessionDescriptor:function (callback){ … }
+getMaxAudioRecvBandwidth:function (callback){ … }
+getMaxListeners:function getMaxListeners() { … }
+getMaxOuputBitrate:function (callback){ … }
+getMaxOutputBitrate:function (callback){ … }
+getMaxVideoRecvBandwidth:function (callback){ … }
+getMaxVideoSendBandwidth:function (callback){ … }
+getMediaPipeline:function (callback){ … }
+getMediaState:function (callback){ … }
+getMinOuputBitrate:function (callback){ … }
+getMinOutputBitrate:function (callback){ … }
+getMinVideoRecvBandwidth:function (callback){ … }
+getMinVideoSendBandwidth:function (callback){ … }

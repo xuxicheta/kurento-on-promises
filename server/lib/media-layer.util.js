@@ -102,8 +102,7 @@ const MediaLayer = {
    * @return {string}
    */
   generateBaseRecordName() {
-    const hrTime = process.hrtime();
-    return `${hrTime[0] * 1000000}_${hrTime[1]}`;
+    return `${Date.now()}`;
   },
 
   /**

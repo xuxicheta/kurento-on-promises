@@ -5,5 +5,6 @@ import { MirrorModule } from './modules/mirror.module';
 
 const ws = new WebSocketModule();
 const mirrorInstance = new MirrorModule(ws);
+mirrorInstance.on('playStatus', (evt) => console.log(evt));
 
 

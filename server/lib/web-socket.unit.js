@@ -36,11 +36,15 @@ class WebSocketUnit {
 
       ws.on('message', (message) => {
         try {
-          if (process.env.WS_LOG) {
-            log(logger.color.red('in'), message);
-          }
           /** @type {MessageData} */
           const messageData = JSON.parse(message.toString());
+          if (process.env.WS_LOG && messageData.method !== 'media/localCandidate') {
+            if (messageData.method === 'media/sdpOffer') {
+              log(logger.color.red('in'), messageData.method);
+            } else {
+              log(logger.color.red('in'), message);
+            }
+          }
           session.onMessageData(messageData);
         } catch (error) {
           logger.error(error);
@@ -56,8 +60,12 @@ class WebSocketUnit {
 
       session.on('outcomeData', (data) => {
         const message = JSON.stringify(data);
-        if (process.env.WS_LOG) {
-          log(logger.color.blue('out'), message);
+        if (process.env.WS_LOG && data.method !== 'media/remoteCandidate') {
+          if (data.method === 'media/sdpAnswer') {
+            log(logger.color.blue('out'), data.method);
+          } else {
+            log(logger.color.blue('out'), message);
+          }
         }
         ws.send(message);
       });

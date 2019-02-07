@@ -4,7 +4,7 @@ const { EventEmitter } = require('events');
 const { MediaService } = require('./media.service');
 const { FilesService } = require('./files.service');
 const logger = require('../modules/logger/logger.module');
-const SESSION = logger.color.magenta('SESSION');
+const SESSION = logger.color.blue('SESSION');
 
 class Session extends EventEmitter {
   /**

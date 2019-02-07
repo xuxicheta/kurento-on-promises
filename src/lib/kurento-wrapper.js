@@ -3,14 +3,13 @@
 import { WebRtcPeer } from './kurento-utils';
 
 /**
- * @typedef {import('kurento-utils').WebRtcPeer} WebRtcPeer
  * @typedef {object} WebRtcPeerOptions
  * @property {HTMLVideoElement} [localVideo] Video tag in the application for the local stream.
  * @property {HTMLVideoElement} [remoteVideo] Video tag in the application for the remote stream.
  * @property {MediaStream} [videoStream] Provides an already available video stream that will be used instead of using the media stream from the local webcam.
  * @property {MediaStream} [audioStream] Provides an already available audio stream that will be used instead of using the media stream from the local microphone.
  * @property {MediaStreamConstraints} [mediaConstraints] Defined the quality for the video and audio
- * @property {*} [connectionConstraints] Defined the connection constraint according with browser like googIPv6, DtlsSrtpKeyAgreement…
+ * @property {*} [connectionConstraints] Defined the connection constraint according with browser like google IPv6, DtlsSrtpKeyAgreement…
  * @property {RTCPeerConnection} [peerConnection] Use a peerConnection which was created before
  * @property {'webcam'|'screen'|'window'} [sendSource] Which source will be used
  * @property {Function} [onstreamended] Method that will be invoked when stream ended event happens
@@ -37,7 +36,7 @@ import { WebRtcPeer } from './kurento-utils';
 export const KurentoWrapper = {
   /**
    * @param {WebRtcPeerOptions} options
-   * @returns {Promise<WebRtcPeer>}
+   * @returns {Promise<import('kurento-utils').WebRtcPeer>}
    */
   createWebRtcPeer(options) {
     return new Promise((resolve, reject) => {
@@ -50,7 +49,7 @@ export const KurentoWrapper = {
     });
   },
   /**
-   * @param {WebRtcPeer} webRtcPeer
+   * @param {import('kurento-utils').WebRtcPeer} webRtcPeer
    * @returns {Promise<string>}
    */
   generateOffer(webRtcPeer) {
@@ -64,12 +63,26 @@ export const KurentoWrapper = {
     });
   },
   /**
-   * @param {WebRtcPeer} webRtcPeer
+   * @param {import('kurento-utils').WebRtcPeer} webRtcPeer
    * @param {string} answer
    */
   processAnswer(webRtcPeer, answer) {
     return new Promise((resolve, reject) => {
       webRtcPeer.processAnswer(answer, (error) => {
+        if (error) {
+          reject(error);
+        }
+        resolve();
+      });
+    });
+  },
+  /**
+   * @param {import('kurento-utils').WebRtcPeer} webRtcPeer
+   * @param {RTCIceCandidate} candidate
+   */
+  addIceCandidate(webRtcPeer, candidate) {
+    return new Promise((resolve, reject) => {
+      webRtcPeer.addIceCandidate(candidate, (error) => {
         if (error) {
           reject(error);
         }
