@@ -13,6 +13,7 @@
         "NODE_ENV": "development",
         "COLORED_LOG": "1",
         "WS_LOG": "1",
+        "RECORD_ENDPOINT": "file:///tmp/"
       },
       // "cwd": "${workspaceFolder}/itorum-backend"
     }

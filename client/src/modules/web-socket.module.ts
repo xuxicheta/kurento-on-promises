@@ -47,6 +47,9 @@ export class WebSocketModule extends EventEmitter {
       try {
         const incomingData = JSON.parse(evt.data);
         this.emit(incomingData.method, incomingData.params);
+        if (incomingData.method === 'reload') {
+          setTimeout(() => window.location.reload(), 1000);
+        }
       } catch (error) {
         logger.error(WS, error);
       }

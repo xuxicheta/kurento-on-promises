@@ -17,17 +17,17 @@ export class MirrorModule extends EventEmitter {
   private isRecordOn = false;
   private iceServers: any[] = [];
 
-  private ws: WebSocketModule;
+  private webSocketModule: WebSocketModule;
 
   private webRtcPeer: WebRtcPeer = null;
 
 
-  constructor(ws: WebSocketModule) {
+  constructor(webSocketModule: WebSocketModule) {
     super();
     this.mirrorPlayButton.addEventListener('click', () => this.onPlayClick());
     this.mirrorRecordingButton.addEventListener('click', () => this.onRecordingClick());
-    this.ws = ws;
-    this.ws
+    this.webSocketModule = webSocketModule;
+    this.webSocketModule
       .on('media/iceServers', (iceServersJSON: string) => {
         this.setIceServers(JSON.parse(iceServersJSON));
       })
@@ -37,7 +37,13 @@ export class MirrorModule extends EventEmitter {
       .on('media/remoteCandidate', (evt: { candidate: any}) => {
         this.onRemoteCandidate(evt.candidate);
       })
-    this.ws.sendData('media/getIceServers');
+      .on('media/recordStarted', (evt: { uri: string }) => {
+        this.mirrorRecordingButton.classList.add('active');
+      })
+      .on('media/recordStopped', (evt: { uri: string }) => {
+        this.mirrorRecordingButton.classList.remove('active');
+      });
+    this.webSocketModule.sendData('media/getIceServers');
   }
 
   setIceServers(iceServers: any[]) {
@@ -45,6 +51,11 @@ export class MirrorModule extends EventEmitter {
   }
 
   async onAnswer(sdpAnswer: string) {
+    this.webRtcPeer.peerConnection.onsignalingstatechange = evt => console.log('signalingState', (evt.target as RTCPeerConnection).signalingState);
+    this.webRtcPeer.peerConnection.onconnectionstatechange = evt => console.log('connectionState', (evt.target as RTCPeerConnection).connectionState);
+    this.webRtcPeer.peerConnection.oniceconnectionstatechange = evt => console.log('iceConnectionState', (evt.target as RTCPeerConnection).iceConnectionState);
+    this.webRtcPeer.peerConnection.onicegatheringstatechange = evt => console.log('iceGatheringState', (evt.target as RTCPeerConnection).iceGatheringState);
+
     await KurentoWrapper.processAnswer(this.webRtcPeer, sdpAnswer);
     this.emit('playStatus', true);
   }
@@ -55,29 +66,37 @@ export class MirrorModule extends EventEmitter {
 
   async onPlayClick() {
     if (this.isPlaying) {
-      this.isPlaying = false;
-      this.mirrorPlayButton.value = 'Play';
-      this.mirrorPlayButton.classList.remove('active');
-      this.webRtcPeer.dispose();
-      this.webRtcPeer = null;
-      this.ws.sendData('media/clientStop');
-      this.emit('playStatus', false);
+      this.stop();
     } else {
-      this.webRtcPeer = await KurentoWrapper.createWebRtcPeer({
-        localVideo: this.localVideo,
-        remoteVideo: this.remoteVideo,
-        onicecandidate: (candidate: any) => this.onCandidate(candidate),
-        configuration: {
-          iceServers: this.iceServers,
-        }
-      });
-      this.sdpOffer = await KurentoWrapper.generateOffer(this.webRtcPeer);
-      this.isPlaying = true;
-      this.mirrorPlayButton.value = 'Stop';
-      this.mirrorPlayButton.classList.add('active');
-
-      this.ws.sendData('media/sdpOffer', { sdpOffer: this.sdpOffer });
+      this.play();
     }
+  }
+
+  stop() {
+    this.isPlaying = false;
+    this.mirrorPlayButton.value = 'Play';
+    this.mirrorPlayButton.classList.remove('active');
+    this.webRtcPeer.dispose();
+    this.webRtcPeer = null;
+    this.webSocketModule.sendData('media/clientStop');
+    this.emit('playStatus', false);
+  }
+
+  async play() {
+    this.webRtcPeer = await KurentoWrapper.createWebRtcPeer({
+      localVideo: this.localVideo,
+      remoteVideo: this.remoteVideo,
+      onicecandidate: (candidate: any) => this.onCandidate(candidate),
+      configuration: {
+        iceServers: this.iceServers,
+      }
+    });
+    this.sdpOffer = await KurentoWrapper.generateOffer(this.webRtcPeer);
+    this.isPlaying = true;
+    this.mirrorPlayButton.value = 'Stop';
+    this.mirrorPlayButton.classList.add('active');
+
+    this.webSocketModule.sendData('media/sdpOffer', { sdpOffer: this.sdpOffer });
   }
 
   onRecordingClick() {
@@ -86,11 +105,11 @@ export class MirrorModule extends EventEmitter {
     }
 
     if (!this.isRecordOn) {
-      this.ws.sendData('media/startRecord');
+      this.webSocketModule.sendData('media/startRecord');
       this.mirrorRecordingButton.value = 'Stop Rec';
       this.isRecordOn = true;
     } else {
-      this.ws.sendData('media/stopRecord');
+      this.webSocketModule.sendData('media/stopRecord');
       this.mirrorRecordingButton.value = 'Start Rec'
       this.isRecordOn = false;
     }
@@ -99,6 +118,6 @@ export class MirrorModule extends EventEmitter {
   }
 
   onCandidate(candidate: any) {
-    this.ws.sendData('media/localCandidate', { candidate });
+    this.webSocketModule.sendData('media/localCandidate', { candidate });
   }
 }

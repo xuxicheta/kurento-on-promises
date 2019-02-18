@@ -3,18 +3,20 @@ const kurentoClient = require('kurento-client');
 const logger = require('../modules/logger/logger.module');
 const MEDIA_LAYER = logger.color.green('MEDIA_LAYER');
 const log = logger.log;
-// const { config } = require('../../config');
 
 /**
  * Collection of Kurento operations. Promise wrappers around kurento-client
  */
-const MediaLayer = {
+class MediaLayer {
   /**
   * @param {string} wsUri
   * @return {Promise<import('kurento-client')>};
   */
-  createClient(wsUri) {
+  static createClient(wsUri) {
     return new Promise((resolve, reject) => {
+      if (MediaLayer.client) {
+        return resolve(MediaLayer.client);
+      }
       const timeout = setTimeout(() => {
         logger.error(`${MEDIA_LAYER} kurentoClient didn't created by timeout`);
         reject(new Error(`${MEDIA_LAYER} kurentoClient didn't created by timeout`));
@@ -27,16 +29,17 @@ const MediaLayer = {
         }
         log(`${MEDIA_LAYER} client created, server address: "${wsUri}"`);
         clearTimeout(timeout);
+        MediaLayer.client = client;
         return resolve(client);
       });
     });
-  },
+  }
 
   /**
    * @param {import('kurento-client')} client
    * @return {Promise<import('kurento-client-core').MediaPipeline>}
    */
-  createPipeline(client) {
+  static createPipeline(client) {
     return new Promise((resolve, reject) => {
       client.create('MediaPipeline', (err, pipeline) => {
         const timeout = setTimeout(() => {
@@ -51,13 +54,13 @@ const MediaLayer = {
         resolve(pipeline);
       });
     });
-  },
+  }
 
   /**
    * @param {import('kurento-client-core').MediaPipeline} pipeline
    * @return {Promise<import('kurento-client-elements').WebRtcEndpoint>}
    */
-  createWebRtcEndpoint(pipeline) {
+  static createWebRtcEndpoint(pipeline) {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         logger.error(`${MEDIA_LAYER} WebRtcEndpoint didn't created by timeout`);
@@ -72,15 +75,14 @@ const MediaLayer = {
         resolve(webRtcEndpoint);
       });
     });
-  },
+  }
 
   /**
    * @param {import('kurento-client-core').MediaPipeline} pipeline
    * @param {string} uri
-   * @param {string} mediaProfile
    * @return {Promise<import('kurento-client-elements').RecorderEndpoint>}
    */
-  createRecorderEndpoint(pipeline, uri) {
+  static createRecorderEndpoint(pipeline, uri) {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         logger.error(`${MEDIA_LAYER} RecorderEndpoint didn't created by timeout`);
@@ -96,14 +98,14 @@ const MediaLayer = {
         resolve(recorderEndpoint);
       });
     });
-  },
+  }
 
   /**
    * @return {string}
    */
-  generateBaseRecordName() {
+  static generateBaseRecordName() {
     return `${Date.now()}`;
-  },
+  }
 
   /**
    *
@@ -111,7 +113,7 @@ const MediaLayer = {
    * @param {import('kurento-client-elements').WebRtcEndpoint|import('kurento-client-elements').RecorderEndpoint} someEndpoint
    * @return {Promise<void>}
    */
-  connectEndpoints(webRtcEndpoint, someEndpoint) {
+  static connectEndpoints(webRtcEndpoint, someEndpoint) {
     return new Promise((resolve, reject) => {
       //@ts-ignore
       webRtcEndpoint.connect(someEndpoint, (err) => {
@@ -121,13 +123,13 @@ const MediaLayer = {
         resolve();
       });
     });
-  },
+  }
 
   /**
    * @param {import('kurento-client-elements').WebRtcEndpoint|import('kurento-client-elements').RecorderEndpoint} someEndpoint
    * @return {Promise<void>}
    */
-  stopEndpoint(someEndpoint) {
+  static stopEndpoint(someEndpoint) {
     return new Promise((resolve, reject) => {
       //@ts-ignore
       if (!someEndpoint || !someEndpoint.stop) { // often happens, call stopEndpoint if no endpoint here
@@ -141,7 +143,7 @@ const MediaLayer = {
         resolve();
       });
     });
-  },
+  }
 
   /**
    * processAnswer and gatherCandidates
@@ -149,7 +151,7 @@ const MediaLayer = {
    * @param {string} offer
    * @return {Promise<string>}
    */
-  getAnswer(webRtcEndpoint, offer) {
+  static getAnswer(webRtcEndpoint, offer) {
     return new Promise((resolve, reject) => {
       //@ts-ignore
       webRtcEndpoint.processOffer(offer, (errOffer, answer) => {
@@ -164,7 +166,43 @@ const MediaLayer = {
         });
       });
     });
-  },
-};
+  }
+
+  /**
+   * @param {import('kurento-client-elements').WebRtcEndpoint} webRtcEndpoint
+   * @param {string} [prefix]
+   */
+  static setDebugListeners(webRtcEndpoint, prefix = '') {
+    /** taken from source kurento-client */
+    const eventsArray = [
+      // webRtcEndpoint events
+      'DataChannelClose',
+      'DataChannelOpen',
+      // 'IceCandidateFound',
+      'IceComponentStateChange',
+      'IceGatheringDone',
+      'NewCandidatePairSelected',
+      'OnDataChannelClosed',
+      'OnDataChannelOpened',
+      // 'OnIceCandidate',
+      // 'OnIceComponentStateChanged',
+      'OnIceGatheringDone',
+      'MediaFlowInStateChange',
+      'MediaFlowOutStateChange',
+      // BaseEndpoint events
+      'ConnectionStateChanged',
+      'MediaStateChanged',
+    ];
+
+    eventsArray.forEach((eventName) => {
+      //@ts-ignore
+      webRtcEndpoint.on(eventName, (event) => {
+        logger.log(prefix, eventName, JSON.stringify(event));
+      });
+    });
+  }
+}
+/** @type {import('kurento-client')} */
+MediaLayer.client = null;
 
 module.exports.MediaLayer = MediaLayer;

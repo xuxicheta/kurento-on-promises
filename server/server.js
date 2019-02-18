@@ -69,7 +69,3 @@ function onError(error) {
       throw error;
   }
 }
-
-process.on('beforeExit', () => {
-  webSocketUnit.wsServer.clients.forEach(ws => ws.close());
-});

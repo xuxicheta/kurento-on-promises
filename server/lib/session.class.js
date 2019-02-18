@@ -15,6 +15,7 @@ class Session extends EventEmitter {
     this.createdAt = new Date();
     this.sessionId = sessionId;
     this.outcomeMessageId = 0;
+    this.dyingTimeout = null;
 
     const sendData = this.sendData.bind(this);
     this.mediaService = new MediaService({ sendData });
@@ -42,6 +43,15 @@ class Session extends EventEmitter {
     this.emit('close');
     this.removeAllListeners();
     logger.log(`${SESSION} closed "${this.sessionId}"`);
+  }
+
+  resume() {
+    clearTimeout(this.dyingTimeout);
+    this.dyingTimeout = null;
+  }
+
+  startDying() {
+    this.dyingTimeout = setTimeout(this.close.bind(this), 10000);
   }
 
   /**

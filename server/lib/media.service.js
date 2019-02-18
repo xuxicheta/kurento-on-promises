@@ -1,7 +1,7 @@
 //@ts-check
 const KurentoClient = require('kurento-client');
 
-const { MediaLayer } = require('./media-layer.util');
+const { MediaLayer } = require('./media.layer.');
 const { config } = require('../config');
 const logger = require('../modules/logger/logger.module');
 const MEDIA = logger.color.magenta('MEDIA');
@@ -24,7 +24,10 @@ class MediaService {
     this.frozenCandidates = [];
     this.offer = null;
     this.answer = null;
-    this.init();
+    (async () => {
+      this.client = await MediaLayer.createClient(config.kurentoWsUri);
+      this.pipeline = await MediaLayer.createPipeline(this.client);
+    })();
   }
 
   /**
@@ -44,6 +47,12 @@ class MediaService {
           break;
         case 'media/clientStop':
           this.onStop();
+          break;
+        case 'media/startRecord':
+          this.onStartRecord();
+          break;
+        case 'media/stopRecord':
+          this.onStopRecord();
           break;
         default:
       }
@@ -67,66 +76,9 @@ class MediaService {
       this.sendData('media/remoteCandidate', { candidate });
     });
 
-    // const filename = MediaLayer.generateBaseRecordName();
-    // this.recorderEndpoint = await MediaLayer.createRecorderEndpoint(this.pipeline, config.recordEndpoint + filename);
-    // //@ts-ignore
-    // this.recorderEndpoint.on('Recording', async () => {
-    //   //@ts-ignore
-    //   logger.log(`${MEDIA} recording started "${await this.recorderEndpoint.getUri()}"`);
-    //   this.sendData('media/record-started');
-    // });
-
-    // //@ts-ignore
-    // this.recorderEndpoint.on('Stopped', async () => {
-    //   //@ts-ignore
-    //   logger.log(`MEDIA record stopped "${await this.recorderEndpoint.getUri()}"`);
-    // });
-
-    this.answer = await MediaLayer.getAnswer(this.webRtcEndpoint, offer)
+    this.answer = await MediaLayer.getAnswer(this.webRtcEndpoint, offer);
     this.sendData('media/sdpAnswer', { sdpAnswer: this.answer });
     await MediaLayer.connectEndpoints(this.webRtcEndpoint, this.webRtcEndpoint);
-    logger.log('connected');
-  }
-
-  /**
-   * @async
-   */
-  async init() {
-
-    this.client = await MediaLayer.createClient(config.kurentoWsUri);
-    this.pipeline = await MediaLayer.createPipeline(this.client);
-
-
-  }
-
-  setDebugListeners() {
-    /** taken from source kurento-client */
-    const eventsArray = [
-      // webRtcEndpoint events
-      'DataChannelClose',
-      'DataChannelOpen',
-      // 'IceCandidateFound',
-      'IceComponentStateChange',
-      'IceGatheringDone',
-      'NewCandidatePairSelected',
-      'OnDataChannelClosed',
-      'OnDataChannelOpened',
-      // 'OnIceCandidate',
-      // 'OnIceComponentStateChanged',
-      'OnIceGatheringDone',
-      'MediaFlowInStateChange',
-      'MediaFlowOutStateChange',
-      // BaseEndpoint events
-      'ConnectionStateChanged',
-      'MediaStateChanged',
-    ];
-
-    eventsArray.forEach((eventName) => {
-      //@ts-ignore
-      this.webRtcEndpoint.on(eventName, (event) => {
-        logger.log(eventName, JSON.stringify(event));
-      });
-    });
   }
 
   onLocalCandidate(data) {
@@ -145,6 +97,39 @@ class MediaService {
     //@ts-ignore
     this.webRtcEndpoint.release(error => error && logger.error(error));
     this.webRtcEndpoint = null;
+  }
+
+  async onStartRecord() {
+    const filename = MediaLayer.generateBaseRecordName();
+    this.recorderEndpoint = await MediaLayer.createRecorderEndpoint(this.pipeline, `${config.recordEndpoint + filename}.mp4`);
+    //@ts-ignore
+    const uri = await this.recorderEndpoint.getUri();
+    console.log(uri);
+
+    //@ts-ignore
+    this.recorderEndpoint.on('Recording', async () => {
+      logger.log(`${MEDIA} recording started "${uri}"`);
+      this.sendData('media/recordStarted', { uri });
+    });
+
+    //@ts-ignore
+    this.recorderEndpoint.on('Stopped', async () => {
+      logger.log(`MEDIA record stopped "${uri}"`);
+      this.sendData('media/recordStopped', { uri });
+    });
+    await MediaLayer.connectEndpoints(this.webRtcEndpoint, this.recorderEndpoint);
+    //@ts-ignore
+    this.recorderEndpoint.record(error => error && logger.error(error));
+    //@ts-ignore
+  }
+
+  onStopRecord() {
+    if (!this.recorderEndpoint) {
+      return;
+    }
+    //@ts-ignore
+    this.recorderEndpoint.stop(error => error && logger.error(error));
+    this.recorderEndpoint = null;
   }
 
 }
