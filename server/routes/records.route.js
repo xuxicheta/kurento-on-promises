@@ -1,6 +1,6 @@
 //@ts-check
 const express = require('express');
-const recordsController = require('../controllers/record.controller');
+const recordsController = require('./controllers/record.controller');
 
 const recordsRouter = express.Router();
 

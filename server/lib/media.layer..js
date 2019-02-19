@@ -1,7 +1,7 @@
 //@ts-check
 const kurentoClient = require('kurento-client');
 const logger = require('../modules/logger/logger.module');
-const MEDIA_LAYER = logger.color.green('MEDIA_LAYER');
+const MEDIA_LAYER = logger.color.grey('MEDIA_LAYER');
 const log = logger.log;
 
 /**

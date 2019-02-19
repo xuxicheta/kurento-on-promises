@@ -104,7 +104,6 @@ class MediaService {
     this.recorderEndpoint = await MediaLayer.createRecorderEndpoint(this.pipeline, `${config.recordEndpoint + filename}.mp4`);
     //@ts-ignore
     const uri = await this.recorderEndpoint.getUri();
-    console.log(uri);
 
     //@ts-ignore
     this.recorderEndpoint.on('Recording', async () => {
@@ -114,7 +113,7 @@ class MediaService {
 
     //@ts-ignore
     this.recorderEndpoint.on('Stopped', async () => {
-      logger.log(`MEDIA record stopped "${uri}"`);
+      logger.log(`${MEDIA} record stopped "${uri}"`);
       this.sendData('media/recordStopped', { uri });
     });
     await MediaLayer.connectEndpoints(this.webRtcEndpoint, this.recorderEndpoint);

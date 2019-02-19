@@ -46,12 +46,14 @@ class Session extends EventEmitter {
   }
 
   resume() {
+    logger.log(SESSION, 'resume');
     clearTimeout(this.dyingTimeout);
     this.dyingTimeout = null;
   }
 
   startDying() {
     this.dyingTimeout = setTimeout(this.close.bind(this), 10000);
+    logger.log(SESSION, 'start dying');
   }
 
   /**

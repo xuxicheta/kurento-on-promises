@@ -11,7 +11,7 @@ const webSocketUnit = require('./lib/web-socket.unit');
 const { config } = require('./config');
 
 const log = logger.log;
-const SERVER = logger.color.green('SERVER');
+const SERVER = logger.color.grey('SERVER');
 
 /****  init app  ****/
 const app = require('./app');
