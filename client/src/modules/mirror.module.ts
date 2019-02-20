@@ -134,14 +134,15 @@ export class MirrorModule extends EventEmitter {
       sdpOffer: this.sdpOffer,
       isResumePlay,
     });
-    return new Promise((resolve) => {
+    // wait for connectionState will be connected
+    await new Promise((resolve) => {
       this.webRtcPeer.peerConnection.addEventListener('connectionstatechange', () => {
         if (this.webRtcPeer.peerConnection.connectionState === 'connected') {
-          storage.setItem(STORAGE.PLAYING, new Date().toLocaleString());
           resolve();
         }
       });
-    })
+    });
+    storage.setItem(STORAGE.PLAYING, new Date().toLocaleString());
   }
 
   onRecordingClick() {
