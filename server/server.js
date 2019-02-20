@@ -69,3 +69,8 @@ function onError(error) {
       throw error;
   }
 }
+
+module.exports = {
+  httpServer,
+  httpsServer,
+};

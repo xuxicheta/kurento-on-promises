@@ -24,6 +24,7 @@ class MediaService {
     this.frozenCandidates = [];
     this.offer = null;
     this.answer = null;
+    this.kurentoCandidates = [];
     (async () => {
       this.client = await MediaLayer.createClient(config.kurentoWsUri);
       this.pipeline = await MediaLayer.createPipeline(this.client);
@@ -31,7 +32,7 @@ class MediaService {
   }
 
   /**
-   * @param {import('./web-socket.unit').MessageData} messageData
+   * @param {import('./session.class').MessageData} messageData
    */
   onMediaMessageData(messageData) {
     try {
@@ -40,7 +41,7 @@ class MediaService {
           this.sendData('media/iceServers', config.iceServers);
           break;
         case 'media/sdpOffer':
-          this.onOffer(messageData.params.sdpOffer);
+          this.onOffer(messageData.params.sdpOffer, messageData.params.isResumePlay);
           break;
         case 'media/localCandidate':
           this.onLocalCandidate(messageData.params.candidate);
@@ -61,14 +62,26 @@ class MediaService {
     }
   }
 
-  async onOffer(offer) {
-    this.offer = offer;
+  /**
+   * @param {string} sdpOffer
+   * @param {boolean} isResumePlay
+   */
+  async onOffer(sdpOffer, isResumePlay) {
+    const isResume = isResumePlay && this.webRtcEndpoint;
+    const oldWebRtcEndpoint = this.webRtcEndpoint;
+    this.webRtcEndpoint = null;
+    this.offer = sdpOffer;
 
-    this.webRtcEndpoint = await MediaLayer.createWebRtcEndpoint(this.pipeline);
-    while (this.frozenCandidates.length) {
-      this.webRtcEndpoint.addIceCandidate(this.frozenCandidates.shift(), () => { });
+    if (isResume) {
+      if (this.recorderEndpoint) {
+        await MediaLayer.disconnectEndpoints(oldWebRtcEndpoint, this.recorderEndpoint);
+      }
+      //@ts-ignore
+      await MediaLayer.releaseEndpoints(oldWebRtcEndpoint);
     }
 
+
+    this.webRtcEndpoint = await MediaLayer.createWebRtcEndpoint(this.pipeline);
     //@ts-ignore
     this.webRtcEndpoint.on('OnIceCandidate', (event) => {
       //@ts-ignore
@@ -76,7 +89,15 @@ class MediaService {
       this.sendData('media/remoteCandidate', { candidate });
     });
 
-    this.answer = await MediaLayer.getAnswer(this.webRtcEndpoint, offer);
+    while (this.frozenCandidates.length) {
+      this.webRtcEndpoint.addIceCandidate(this.frozenCandidates.shift(), () => { });
+    }
+
+    if (isResume) {
+      console.log(this.webRtcEndpoint);
+    }
+
+    this.answer = await MediaLayer.getAnswer(this.webRtcEndpoint, sdpOffer);
     this.sendData('media/sdpAnswer', { sdpAnswer: this.answer });
     await MediaLayer.connectEndpoints(this.webRtcEndpoint, this.webRtcEndpoint);
   }

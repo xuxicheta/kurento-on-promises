@@ -1,8 +1,9 @@
 
-import { KurentoWrapper, WebRtcPeerOptions } from '../lib/kurento-wrapper';
+import { KurentoWrapper } from '../lib/kurento-wrapper';
 import { WebRtcPeer } from 'kurento-utils';
-import { WebSocketModule } from './web-socket.module';
+import { WebSocketUnit } from './web-socket.unit';
 import { EventEmitter } from 'events';
+import { storage, STORAGE } from '../lib/storage.module';
 
 export class MirrorModule extends EventEmitter {
   private mirrorPlayButton: HTMLInputElement = document.getElementById('mirror-play-button') as HTMLInputElement;
@@ -16,34 +17,51 @@ export class MirrorModule extends EventEmitter {
   private isRecording = false;
   private isRecordOn = false;
   private iceServers: any[] = [];
+  private isIceServersGot: Promise<void>;
 
-  private webSocketModule: WebSocketModule;
+  private webSocketUnit: WebSocketUnit;
 
   private webRtcPeer: WebRtcPeer = null;
 
 
-  constructor(webSocketModule: WebSocketModule) {
+  constructor(webSocketModule: WebSocketUnit) {
     super();
     this.mirrorPlayButton.addEventListener('click', () => this.onPlayClick());
     this.mirrorRecordingButton.addEventListener('click', () => this.onRecordingClick());
-    this.webSocketModule = webSocketModule;
-    this.webSocketModule
+    this.webSocketUnit = webSocketModule;
+    this.webSocketUnit
       .on('media/iceServers', (iceServersJSON: string) => {
         this.setIceServers(JSON.parse(iceServersJSON));
+        this.emit('iceServersGot');
       })
-      .on('media/sdpAnswer', (evt: {sdpAnswer: string}) => {
+      .on('media/sdpAnswer', (evt: { sdpAnswer: string }) => {
         this.onAnswer(evt.sdpAnswer);
       })
-      .on('media/remoteCandidate', (evt: { candidate: any}) => {
+      .on('media/remoteCandidate', (evt: { candidate: any }) => {
         this.onRemoteCandidate(evt.candidate);
       })
       .on('media/recordStarted', (evt: { uri: string }) => {
         this.mirrorRecordingButton.classList.add('active');
+        storage.setItem(STORAGE.RECORDING, evt.uri);
+        this.isRecording = true;
       })
       .on('media/recordStopped', (evt: { uri: string }) => {
         this.mirrorRecordingButton.classList.remove('active');
+        storage.removeItem(STORAGE.RECORDING);
+        this.isRecording = false;
       });
-    this.webSocketModule.sendData('media/getIceServers');
+    this.isIceServersGot = new Promise((resolve, reject) => {
+      this.on('iceServersGot', () => resolve());
+    });
+
+    if (storage.getItem(STORAGE.PLAYING)) {
+      this.play(true).then(() => {
+        if (storage.getItem(STORAGE.RECORDING)) {
+          this.startRecord(true);
+        }
+      });
+      
+    }
   }
 
   setIceServers(iceServers: any[]) {
@@ -51,10 +69,17 @@ export class MirrorModule extends EventEmitter {
   }
 
   async onAnswer(sdpAnswer: string) {
-    this.webRtcPeer.peerConnection.onsignalingstatechange = evt => console.log('signalingState', (evt.target as RTCPeerConnection).signalingState);
-    this.webRtcPeer.peerConnection.onconnectionstatechange = evt => console.log('connectionState', (evt.target as RTCPeerConnection).connectionState);
-    this.webRtcPeer.peerConnection.oniceconnectionstatechange = evt => console.log('iceConnectionState', (evt.target as RTCPeerConnection).iceConnectionState);
-    this.webRtcPeer.peerConnection.onicegatheringstatechange = evt => console.log('iceGatheringState', (evt.target as RTCPeerConnection).iceGatheringState);
+    const peerConnection: RTCPeerConnection = this.webRtcPeer.peerConnection;
+    peerConnection.addEventListener('connectionstatechange', evt => console.log('connectionstatechange', peerConnection.connectionState));
+    peerConnection.addEventListener('datachannel', evt => console.log('datachannel', peerConnection));
+    peerConnection.addEventListener('icecandidate', evt => console.log('icecandidate', peerConnection));
+    peerConnection.addEventListener('icecandidateerror', evt => console.log('icecandidateerror', peerConnection));
+    peerConnection.addEventListener('iceconnectionstatechange', evt => console.log('iceconnectionstatechange', peerConnection.iceConnectionState));
+    peerConnection.addEventListener('icegatheringstatechange', evt => console.log('icegatheringstatechange', peerConnection.iceGatheringState));
+    peerConnection.addEventListener('negotiationneeded', evt => console.log('negotiationneeded', peerConnection));
+    peerConnection.addEventListener('signalingstatechange', evt => console.log('signalingstatechange', peerConnection.signalingState));
+    peerConnection.addEventListener('statsended', evt => console.log('statsended', peerConnection.getStats().then(stats => console.log(stats))));
+    peerConnection.addEventListener('track', evt => console.log('icegatracktheringstatechange', peerConnection));
 
     await KurentoWrapper.processAnswer(this.webRtcPeer, sdpAnswer);
     this.emit('playStatus', true);
@@ -68,21 +93,30 @@ export class MirrorModule extends EventEmitter {
     if (this.isPlaying) {
       this.stop();
     } else {
-      this.play();
+      this.play(false);
     }
   }
 
   stop() {
+    if (!this.isPlaying) {
+      return;
+    }
     this.isPlaying = false;
     this.mirrorPlayButton.value = 'Play';
     this.mirrorPlayButton.classList.remove('active');
     this.webRtcPeer.dispose();
     this.webRtcPeer = null;
-    this.webSocketModule.sendData('media/clientStop');
+    this.webSocketUnit.sendData('media/clientStop');
+    storage.removeItem(STORAGE.PLAYING);
     this.emit('playStatus', false);
   }
 
-  async play() {
+  async play(isResumePlay: boolean) {
+    if (this.isPlaying) {
+      return;
+    }
+    this.webSocketUnit.sendData('media/getIceServers');
+    await this.isIceServersGot;
     this.webRtcPeer = await KurentoWrapper.createWebRtcPeer({
       localVideo: this.localVideo,
       remoteVideo: this.remoteVideo,
@@ -96,7 +130,18 @@ export class MirrorModule extends EventEmitter {
     this.mirrorPlayButton.value = 'Stop';
     this.mirrorPlayButton.classList.add('active');
 
-    this.webSocketModule.sendData('media/sdpOffer', { sdpOffer: this.sdpOffer });
+    this.webSocketUnit.sendData('media/sdpOffer', {
+      sdpOffer: this.sdpOffer,
+      isResumePlay,
+    });
+    return new Promise((resolve) => {
+      this.webRtcPeer.peerConnection.addEventListener('connectionstatechange', () => {
+        if (this.webRtcPeer.peerConnection.connectionState === 'connected') {
+          storage.setItem(STORAGE.PLAYING, new Date().toLocaleString());
+          resolve();
+        }
+      });
+    })
   }
 
   onRecordingClick() {
@@ -105,19 +150,25 @@ export class MirrorModule extends EventEmitter {
     }
 
     if (!this.isRecordOn) {
-      this.webSocketModule.sendData('media/startRecord');
-      this.mirrorRecordingButton.value = 'Stop Rec';
-      this.isRecordOn = true;
+      this.startRecord(false);
     } else {
-      this.webSocketModule.sendData('media/stopRecord');
-      this.mirrorRecordingButton.value = 'Start Rec'
-      this.isRecordOn = false;
+      this.stopRecord();
     }
+  }
 
+  startRecord(isResumeRecord: boolean) {
+    this.webSocketUnit.sendData('media/startRecord', { isResumeRecord });
+    this.mirrorRecordingButton.value = 'Stop Rec';
+    this.isRecordOn = true;
+  }
 
+  stopRecord() {
+    this.webSocketUnit.sendData('media/stopRecord');
+    this.mirrorRecordingButton.value = 'Start Rec'
+    this.isRecordOn = false;
   }
 
   onCandidate(candidate: any) {
-    this.webSocketModule.sendData('media/localCandidate', { candidate });
+    this.webSocketUnit.sendData('media/localCandidate', { candidate });
   }
 }

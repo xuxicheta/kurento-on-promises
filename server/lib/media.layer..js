@@ -116,7 +116,42 @@ class MediaLayer {
   static connectEndpoints(webRtcEndpoint, someEndpoint) {
     return new Promise((resolve, reject) => {
       //@ts-ignore
-      webRtcEndpoint.connect(someEndpoint, (err) => {
+      webRtcEndpoint.disconnect(someEndpoint, (err) => {
+        if (err) {
+          reject(err);
+        }
+        resolve();
+      });
+    });
+  }
+
+  /**
+   *
+   * @param {import('kurento-client-elements').WebRtcEndpoint} webRtcEndpoint
+   * @param {import('kurento-client-elements').WebRtcEndpoint|import('kurento-client-elements').RecorderEndpoint} someEndpoint
+   * @return {Promise<void>}
+   */
+  static disconnectEndpoints(webRtcEndpoint, someEndpoint) {
+    return new Promise((resolve, reject) => {
+      //@ts-ignore
+      webRtcEndpoint.disconnect(someEndpoint, (err) => {
+        if (err) {
+          reject(err);
+        }
+        resolve();
+      });
+    });
+  }
+
+  /**
+   *
+   * @param {import('kurento-client-elements').WebRtcEndpoint} webRtcEndpoint
+   * @return {Promise<void>}
+   */
+  static releaseEndpoints(webRtcEndpoint) {
+    return new Promise((resolve, reject) => {
+      //@ts-ignore
+      webRtcEndpoint.release(webRtcEndpoint, (err) => {
         if (err) {
           reject(err);
         }

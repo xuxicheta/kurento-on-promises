@@ -1,10 +1,11 @@
 //@ts-check
 import { v4 } from 'uuid';
 import { EventEmitter } from 'events';
-import { logger } from './logger.module';
+import { logger } from '../lib/logger.module';
+import { storage, STORAGE } from '../lib/storage.module';
 const WS = logger.color.cyan('WS');
 
-export class WebSocketModule extends EventEmitter {
+export class WebSocketUnit extends EventEmitter {
   sessionId = this.getSessionId();
   uri = `wss://${window.location.hostname}:${window.location.port}/ws?${this.sessionId}`;
   socket: WebSocket;
@@ -21,11 +22,11 @@ export class WebSocketModule extends EventEmitter {
    * @returns {string}
    */
   getSessionId() {
-    if (localStorage.getItem('sessionId')) {
-      return localStorage.getItem('sessionId');
+    if (storage.getItem(STORAGE.SESSION_ID)) {
+      return storage.getItem(STORAGE.SESSION_ID);
     }
     const sessionId = v4();
-    localStorage.setItem('sessionId', sessionId);
+    storage.setItem(STORAGE.SESSION_ID, sessionId);
     return sessionId;
   }
 

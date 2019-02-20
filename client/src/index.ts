@@ -1,11 +1,11 @@
 //@ts-check
 import './scss/styles.scss';
-import { WebSocketModule } from './modules/web-socket.module';
+import { WebSocketUnit } from './modules/web-socket.unit';
 import { MirrorModule } from './modules/mirror.module';
 
-const webSocketModule = new WebSocketModule();
-const mirrorInstance = new MirrorModule(webSocketModule);
-// mirrorInstance.on('playStatus', (evt) => console.log(evt));
+const webSocketUnit = new WebSocketUnit();
+const mirrorInstance = new MirrorModule(webSocketUnit);
+
 
 const foldables = Array.from(document.querySelectorAll('.foldable'));
 foldables.forEach((foldable) => {
