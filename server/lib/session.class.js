@@ -50,10 +50,8 @@ class Session extends EventEmitter {
             break;
           case 'media/sdpOffer':
             log(logger.color.red('in'), JSON.stringify({
-              method: messageData.method,
-              params: { sdpOffer: '', isResumePlay: messageData.params.isResumePlay },
-              sessionId: messageData.sessionId,
-              id: messageData.id,
+              ...messageData,
+              params: { ...messageData.params, sdpOffer: messageData.params.sdpOffer && '' },
             }));
             break;
           default:
@@ -126,10 +124,13 @@ class Session extends EventEmitter {
         case 'media/remoteCandidate':
           break;
         case 'media/sdpAnswer':
-          log(logger.color.blue('out'), outMessageData.method);
+          log(logger.color.blue('out'), JSON.stringify({
+            ...outMessageData,
+            params: { ...outMessageData.params, sdpAnswer: outMessageData.params.sdpAnswer && '' },
+          }));
           break;
         default:
-        log(logger.color.magenta('out'), message);
+          log(logger.color.magenta('out'), message);
       }
     }
 

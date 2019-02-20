@@ -7,15 +7,15 @@ const log = logger.log;
 /**
  * Collection of Kurento operations. Promise wrappers around kurento-client
  */
-class MediaLayer {
+class KurentoClientWrapper {
   /**
   * @param {string} wsUri
   * @return {Promise<import('kurento-client')>};
   */
   static createClient(wsUri) {
     return new Promise((resolve, reject) => {
-      if (MediaLayer.client) {
-        return resolve(MediaLayer.client);
+      if (KurentoClientWrapper.client) {
+        return resolve(KurentoClientWrapper.client);
       }
       const timeout = setTimeout(() => {
         logger.error(`${MEDIA_LAYER} kurentoClient didn't created by timeout`);
@@ -29,7 +29,7 @@ class MediaLayer {
         }
         log(`${MEDIA_LAYER} client created, server address: "${wsUri}"`);
         clearTimeout(timeout);
-        MediaLayer.client = client;
+        KurentoClientWrapper.client = client;
         return resolve(client);
       });
     });
@@ -101,6 +101,21 @@ class MediaLayer {
   }
 
   /**
+   * @param {import('kurento-client-elements').RecorderEndpoint} recorderEndpoint
+   */
+  static startRecord(recorderEndpoint) {
+    return new Promise((resolve, reject) => {
+      //@ts-ignore
+      recorderEndpoint.record((err) => {
+        if (err) {
+          reject(err);
+        }
+        resolve();
+      });
+    });
+  }
+
+  /**
    * @return {string}
    */
   static generateBaseRecordName() {
@@ -116,7 +131,7 @@ class MediaLayer {
   static connectEndpoints(webRtcEndpoint, someEndpoint) {
     return new Promise((resolve, reject) => {
       //@ts-ignore
-      webRtcEndpoint.disconnect(someEndpoint, (err) => {
+      webRtcEndpoint.connect(someEndpoint, (err) => {
         if (err) {
           reject(err);
         }
@@ -148,14 +163,38 @@ class MediaLayer {
    * @param {import('kurento-client-elements').WebRtcEndpoint} webRtcEndpoint
    * @return {Promise<void>}
    */
-  static releaseEndpoints(webRtcEndpoint) {
+  static releaseEndpoint(webRtcEndpoint) {
     return new Promise((resolve, reject) => {
       //@ts-ignore
-      webRtcEndpoint.release(webRtcEndpoint, (err) => {
+      webRtcEndpoint.release((err) => {
         if (err) {
           reject(err);
         }
         resolve();
+      });
+    });
+  }
+
+  /**
+   * @param {import('kurento-client-elements').WebRtcEndpoint|import('kurento-client-elements').RecorderEndpoint} endpoint
+   * @param {string} eventName
+   * @param {(evt: any) => void} callback
+   */
+  static onEventEndpoint(endpoint, eventName, callback) {
+    //@ts-ignore
+    endpoint.on(eventName, callback);
+  }
+
+  /**
+   *
+   * @param {import('kurento-client-elements').RecorderEndpoint} recorderEndpoint
+   * @return {Promise<void>}
+   */
+  static pauseEndpoint(recorderEndpoint) {
+    return new Promise((resolve, reject) => {
+      //@ts-ignore
+      recorderEndpoint.pause((err) => {
+        return err ? reject() : resolve();
       });
     });
   }
@@ -238,6 +277,6 @@ class MediaLayer {
   }
 }
 /** @type {import('kurento-client')} */
-MediaLayer.client = null;
+KurentoClientWrapper.client = null;
 
-module.exports.MediaLayer = MediaLayer;
+module.exports.KurentoClientWrapper = KurentoClientWrapper;

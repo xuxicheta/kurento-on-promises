@@ -1,7 +1,7 @@
 //@ts-check
 const KurentoClient = require('kurento-client');
 
-const { MediaLayer } = require('./media.layer.');
+const { KurentoClientWrapper } = require('./kurento-client-wrapper');
 const { config } = require('../config');
 const logger = require('../modules/logger/logger.module');
 const MEDIA = logger.color.magenta('MEDIA');
@@ -26,8 +26,8 @@ class MediaService {
     this.answer = null;
     this.kurentoCandidates = [];
     (async () => {
-      this.client = await MediaLayer.createClient(config.kurentoWsUri);
-      this.pipeline = await MediaLayer.createPipeline(this.client);
+      this.client = await KurentoClientWrapper.createClient(config.kurentoWsUri);
+      this.pipeline = await KurentoClientWrapper.createPipeline(this.client);
     })();
   }
 
@@ -50,7 +50,7 @@ class MediaService {
           this.onStop();
           break;
         case 'media/startRecord':
-          this.onStartRecord();
+          this.onStartRecord(messageData.params.isResumeRecord);
           break;
         case 'media/stopRecord':
           this.onStopRecord();
@@ -67,23 +67,24 @@ class MediaService {
    * @param {boolean} isResumePlay
    */
   async onOffer(sdpOffer, isResumePlay) {
-    const isResume = isResumePlay && this.webRtcEndpoint;
+    const isResume = isResumePlay && Boolean(this.webRtcEndpoint);
     const oldWebRtcEndpoint = this.webRtcEndpoint;
     this.webRtcEndpoint = null;
     this.offer = sdpOffer;
 
     if (isResume) {
       if (this.recorderEndpoint) {
-        await MediaLayer.disconnectEndpoints(oldWebRtcEndpoint, this.recorderEndpoint);
+        logger.log(MEDIA, 'disconnect from existing recorderEndpoint');
+        await KurentoClientWrapper.pauseEndpoint(this.recorderEndpoint);
+        await KurentoClientWrapper.disconnectEndpoints(oldWebRtcEndpoint, this.recorderEndpoint);
       }
-      //@ts-ignore
-      await MediaLayer.releaseEndpoints(oldWebRtcEndpoint);
+      logger.log(MEDIA, 'release previous webRtcEndpoint');
+      await KurentoClientWrapper.releaseEndpoint(oldWebRtcEndpoint);
     }
 
 
-    this.webRtcEndpoint = await MediaLayer.createWebRtcEndpoint(this.pipeline);
-    //@ts-ignore
-    this.webRtcEndpoint.on('OnIceCandidate', (event) => {
+    this.webRtcEndpoint = await KurentoClientWrapper.createWebRtcEndpoint(this.pipeline);
+    KurentoClientWrapper.onEventEndpoint(this.webRtcEndpoint, 'OnIceCandidate', (event) => {
       //@ts-ignore
       const candidate = KurentoClient.getComplexType('IceCandidate')(event.candidate);
       this.sendData('media/remoteCandidate', { candidate });
@@ -93,13 +94,9 @@ class MediaService {
       this.webRtcEndpoint.addIceCandidate(this.frozenCandidates.shift(), () => { });
     }
 
-    if (isResume) {
-      console.log(this.webRtcEndpoint);
-    }
-
-    this.answer = await MediaLayer.getAnswer(this.webRtcEndpoint, sdpOffer);
+    this.answer = await KurentoClientWrapper.getAnswer(this.webRtcEndpoint, sdpOffer);
     this.sendData('media/sdpAnswer', { sdpAnswer: this.answer });
-    await MediaLayer.connectEndpoints(this.webRtcEndpoint, this.webRtcEndpoint);
+    await KurentoClientWrapper.connectEndpoints(this.webRtcEndpoint, this.webRtcEndpoint);
   }
 
   onLocalCandidate(data) {
@@ -113,45 +110,46 @@ class MediaService {
     }
   }
 
-  onStop() {
-    MediaLayer.stopEndpoint(this.recorderEndpoint);
-    //@ts-ignore
-    this.webRtcEndpoint.release(error => error && logger.error(error));
+  async onStop() {
+    await KurentoClientWrapper.stopEndpoint(this.recorderEndpoint);
+    await KurentoClientWrapper.releaseEndpoint(this.webRtcEndpoint);
     this.webRtcEndpoint = null;
   }
 
-  async onStartRecord() {
-    const filename = MediaLayer.generateBaseRecordName();
-    this.recorderEndpoint = await MediaLayer.createRecorderEndpoint(this.pipeline, `${config.recordEndpoint + filename}.mp4`);
-    //@ts-ignore
-    const uri = await this.recorderEndpoint.getUri();
+  /**
+   * @param {boolean} isResumeRecord
+   */
+  async onStartRecord(isResumeRecord) {
+    const isResume = isResumeRecord && Boolean(this.recorderEndpoint);
+    if (!isResume) {
+      const filename = KurentoClientWrapper.generateBaseRecordName();
+      this.recorderEndpoint = await KurentoClientWrapper.createRecorderEndpoint(this.pipeline, `${config.recordEndpoint + filename}.mp4`);
+      //@ts-ignore
+      const uri = await this.recorderEndpoint.getUri();
 
-    //@ts-ignore
-    this.recorderEndpoint.on('Recording', async () => {
-      logger.log(`${MEDIA} recording started "${uri}"`);
-      this.sendData('media/recordStarted', { uri });
-    });
+      KurentoClientWrapper.onEventEndpoint(this.recorderEndpoint, 'Recording', () => {
+        logger.log(`${MEDIA} recording started "${uri}"`);
+        this.sendData('media/recordStarted', { uri });
+      });
 
-    //@ts-ignore
-    this.recorderEndpoint.on('Stopped', async () => {
-      logger.log(`${MEDIA} record stopped "${uri}"`);
-      this.sendData('media/recordStopped', { uri });
-    });
-    await MediaLayer.connectEndpoints(this.webRtcEndpoint, this.recorderEndpoint);
-    //@ts-ignore
-    this.recorderEndpoint.record(error => error && logger.error(error));
-    //@ts-ignore
+      KurentoClientWrapper.onEventEndpoint(this.recorderEndpoint, 'Stopped', () => {
+        logger.log(`${MEDIA} record stopped "${uri}"`);
+        this.sendData('media/recordStopped', { uri });
+      });
+    }
+    await KurentoClientWrapper.connectEndpoints(this.webRtcEndpoint, this.recorderEndpoint);
+    await KurentoClientWrapper.startRecord(this.recorderEndpoint);
+
+    logger.log(`${MEDIA} starting record`);
   }
 
-  onStopRecord() {
+  async onStopRecord() {
     if (!this.recorderEndpoint) {
       return;
     }
-    //@ts-ignore
-    this.recorderEndpoint.stop(error => error && logger.error(error));
+    await KurentoClientWrapper.stopEndpoint(this.recorderEndpoint);
     this.recorderEndpoint = null;
   }
-
 }
 
 module.exports.MediaService = MediaService;
