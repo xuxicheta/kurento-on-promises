@@ -35,15 +35,17 @@ services:
       - ./docker/config/coturn/turnserver.conf:/etc/turnserver.conf
     network_mode: "host"
 
-  # web:
-  #   image: node:carbon
-  #   container_name: web
-  #   command: 'npm run prod'
-  #   working_dir: /usr/app
-  #   volumes:
-  #   - './:/usr/app'
-  #   - './files:/files'
-  #   ports:
-  #   - "443:3000"
-  #   environment:
-  #     NODE_ENV: "development"
+  web:
+    image: node:carbon
+    container_name: kos
+    command: 'npm run inspect'
+    working_dir: /usr/app
+    volumes:
+    - './:/usr/app'
+    - './files:/files'
+    ports:
+    - "443:3001"
+    - "80:3000"
+    - "5858:5858"
+    environment:
+      NODE_ENV: "development"
