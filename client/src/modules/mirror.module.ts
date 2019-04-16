@@ -52,9 +52,9 @@ export class MirrorModule extends EventEmitter {
       })
       .on('media/pair', (evt) => {
         const localCandidate = evt.candidatePair.localCandidate.split(' ');
-        (document.querySelector('#localCandidate') as HTMLDivElement).innerText = `protocol: ${localCandidate[2]}, IP: ${localCandidate[4]}, port: ${localCandidate[5]}`;
+        (document.querySelector('#localCandidate') as HTMLDivElement).innerText = `protocol: ${localCandidate[2]}  &nbsp;ip: ${localCandidate[4]}  &nbsp;port: ${localCandidate[5]}`;
         const remoteCandidate = evt.candidatePair.remoteCandidate.split(' ');
-        (document.querySelector('#remoteCandidate') as HTMLDivElement).innerText = `protocol: ${remoteCandidate[2]}, IP: ${remoteCandidate[4]}, port: ${remoteCandidate[5]}`;
+        (document.querySelector('#remoteCandidate') as HTMLDivElement).innerText = `protocol: ${remoteCandidate[2]}  &nbsp;ip: ${remoteCandidate[4]}  &nbsp;port: ${remoteCandidate[5]}`;
       });
     this.isIceServersGot = new Promise((resolve, reject) => {
       this.on('iceServersGot', () => resolve());
