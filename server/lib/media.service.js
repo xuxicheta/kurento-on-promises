@@ -85,6 +85,10 @@ class MediaService {
 
     this.webRtcEndpoint = await KurentoClientWrapper.createWebRtcEndpoint(this.pipeline);
     KurentoClientWrapper.onEventEndpoint(this.webRtcEndpoint, 'OnIceCandidate', (event) => {
+      if (process.env.UDP_OFF && event.candidate.candidate.toLowerCase().includes('udp')) {
+        return;
+      }
+
       //@ts-ignore
       const candidate = KurentoClient.getComplexType('IceCandidate')(event.candidate);
       this.sendData('media/remoteCandidate', { candidate });
@@ -107,6 +111,9 @@ class MediaService {
   }
 
   onLocalCandidate(data) {
+    if (process.env.UDP_OFF && data.candidate.toLowerCase().includes('udp')) {
+      return;
+    }
     //@ts-ignore
     const candidate = KurentoClient.getComplexType('IceCandidate')(data);
     if (this.webRtcEndpoint) {
