@@ -90,6 +90,13 @@ class MediaService {
       this.sendData('media/remoteCandidate', { candidate });
     });
 
+    KurentoClientWrapper.onEventEndpoint(this.webRtcEndpoint, 'NewCandidatePairSelected', (evt) => {
+      logger.log(`${MEDIA} PAIR -------  -------  `);
+      logger.log(`${MEDIA} local ${evt.candidatePair.localCandidate}`);
+      logger.log(`${MEDIA} remote ${evt.candidatePair.remoteCandidate}`);
+      this.sendData('media/pair', evt);
+    });
+
     while (this.frozenCandidates.length) {
       this.webRtcEndpoint.addIceCandidate(this.frozenCandidates.shift(), () => { });
     }

@@ -13,7 +13,8 @@
         "NODE_ENV": "development",
         "COLORED_LOG": "1",
         "WS_LOG": "1",
-        "RECORD_ENDPOINT": "file:///tmp/"
+        "RECORD_ENDPOINT": "file:///tmp/",
+        "KURENTO_WS_URI": "ws://94.177.243.71:8888/kurento" // kurento-core
       },
       // "cwd": "${workspaceFolder}/itorum-backend"
     }

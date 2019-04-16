@@ -102,6 +102,7 @@ class KurentoClientWrapper {
 
   /**
    * @param {import('kurento-client-elements').RecorderEndpoint} recorderEndpoint
+   * @returns {Promise<void>}
    */
   static startRecord(recorderEndpoint) {
     return new Promise((resolve, reject) => {
@@ -179,6 +180,7 @@ class KurentoClientWrapper {
    * @param {import('kurento-client-elements').WebRtcEndpoint|import('kurento-client-elements').RecorderEndpoint} endpoint
    * @param {string} eventName
    * @param {(evt: any) => void} callback
+   * @returns {void}
    */
   static onEventEndpoint(endpoint, eventName, callback) {
     //@ts-ignore

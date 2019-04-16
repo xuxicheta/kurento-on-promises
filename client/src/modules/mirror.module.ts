@@ -49,6 +49,13 @@ export class MirrorModule extends EventEmitter {
         this.mirrorRecordingButton.classList.remove('active');
         storage.removeItem(STORAGE.RECORDING);
         this.isRecording = false;
+      })
+      .on('media/pair', (evt) => {
+        const localCandidate = evt.candidatePair.localCandidate.split(' ');
+        (document.querySelector('#localCandidate') as HTMLDivElement).innerText = `protocol: ${localCandidate[2]} IP: ${localCandidate[4]} port: ${localCandidate[5]}`;
+        const remoteCandidate = evt.candidatePair.remoteCandidate.split(' ');
+        console.log({ localCandidate, remoteCandidate });
+
       });
     this.isIceServersGot = new Promise((resolve, reject) => {
       this.on('iceServersGot', () => resolve());
@@ -70,16 +77,18 @@ export class MirrorModule extends EventEmitter {
 
   async onAnswer(sdpAnswer: string) {
     const peerConnection: RTCPeerConnection = this.webRtcPeer.peerConnection;
-    peerConnection.addEventListener('connectionstatechange', evt => console.log('connectionstatechange', peerConnection.connectionState));
-    peerConnection.addEventListener('datachannel', evt => console.log('datachannel', peerConnection));
-    peerConnection.addEventListener('icecandidate', evt => console.log('icecandidate', peerConnection));
-    peerConnection.addEventListener('icecandidateerror', evt => console.log('icecandidateerror', peerConnection));
-    peerConnection.addEventListener('iceconnectionstatechange', evt => console.log('iceconnectionstatechange', peerConnection.iceConnectionState));
-    peerConnection.addEventListener('icegatheringstatechange', evt => console.log('icegatheringstatechange', peerConnection.iceGatheringState));
-    peerConnection.addEventListener('negotiationneeded', evt => console.log('negotiationneeded', peerConnection));
-    peerConnection.addEventListener('signalingstatechange', evt => console.log('signalingstatechange', peerConnection.signalingState));
-    peerConnection.addEventListener('statsended', evt => console.log('statsended', peerConnection.getStats().then(stats => console.log(stats))));
-    peerConnection.addEventListener('track', evt => console.log('icegatracktheringstatechange', peerConnection));
+    peerConnection.addEventListener('connectionstatechange', evt => console.log('connectionstatechange', evt));
+    peerConnection.addEventListener('datachannel', evt => console.log('datachannel', evt));
+    peerConnection.addEventListener('icecandidate', evt => console.log('icecandidate', evt));
+    peerConnection.addEventListener('icecandidateerror', evt => console.log('icecandidateerror', evt));
+    peerConnection.addEventListener('iceconnectionstatechange', evt => console.log('iceconnectionstatechange', evt));
+    peerConnection.addEventListener('icegatheringstatechange', evt => console.log('icegatheringstatechange', evt));
+    peerConnection.addEventListener('negotiationneeded', evt => console.log('negotiationneeded', evt));
+    peerConnection.addEventListener('signalingstatechange', evt => console.log('signalingstatechange', evt));
+    peerConnection.addEventListener('statsended', evt => console.log('statsended', peerConnection.getStats().then(stats => console.log('stats', stats))));
+    peerConnection.addEventListener('track', evt => console.log('track', evt));
+
+    console.log(this.webRtcPeer);
 
     await KurentoWrapper.processAnswer(this.webRtcPeer, sdpAnswer);
     this.emit('playStatus', true);
