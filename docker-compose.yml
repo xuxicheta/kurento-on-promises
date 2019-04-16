@@ -3,7 +3,7 @@ version: '3.0'
 services:
   media:
     container_name: media
-    image: kurento/kurento-media-server:latest-xenial
+    image: kurento/kurento-media-server
     restart: on-failure
     ports:
     - "8888:8888"
